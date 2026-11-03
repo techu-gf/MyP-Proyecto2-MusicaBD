@@ -5,8 +5,10 @@ project('minero', 'cpp',
 taglib_dep = dependency('taglib')
 sqlite3_dep = dependency('sqlite3')
 
-executable('BaseDeDatos',
+executable('minero',
            'src/main.cpp',
-           'src/Modelo/BaseDatos.cpp',
+           'src/Modelo/Minero.cpp',
+           'src/Modelo/Lector.cpp',
+           'src/Modelo/ErrorMinado.cpp',
            dependencies : [taglib_dep, sqlite3_dep],
            install : true)

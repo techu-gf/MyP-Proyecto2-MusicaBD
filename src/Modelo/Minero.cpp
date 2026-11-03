@@ -13,7 +13,7 @@ namespace fs = std::filesystem;
 class Minero{
 
 private:
-  fs::path ruta_directorio, ruta_bd;
+  fs::path ruta_directorio;
 
   /**
    * @brief Determina si ya existe la base de datos. En caso de no existir,
@@ -40,20 +40,15 @@ private:
 	      std::cout << "Año: " << info.year << "\n";
 	      std::cout << "No. Cancion: " << info.track_rola << "\n";
 	      std::cout << "Género: " << info.genre_rola << "\n";
+	      std::cout << "Path canción: " << info.path_rola << "\n";
+	      std::cout << "Path álbum: " << info.path_album << "\n";
 
-	      std::cout << "Archivo analizado con éxito: "<< ruta_archivo.string() + "\n";
+	      std::cout << "Archivo analizado con éxito: "<< ruta_archivo.string() + "\n\n";
 	  }
       }catch(const ErrorMinado& e){
 	  std::cerr << e.what() << "\n";
       }
 
-  }
-
-  /**
-   * @brief Determina si la canción ya existe en la base de datos. 
-   */
-  void ya_existe(){
-    
   }
 
   /**
