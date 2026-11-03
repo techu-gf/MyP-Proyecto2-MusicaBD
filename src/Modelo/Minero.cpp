@@ -3,6 +3,7 @@
 #include <stack>
 #include "Lector.cpp"
 #include "ErrorMinado.cpp"
+#include "BaseDatos.cpp"
 
 namespace fs = std::filesystem;
 
@@ -13,7 +14,8 @@ namespace fs = std::filesystem;
 class Minero{
 
 private:
-  fs::path ruta_directorio;
+    fs::path ruta_directorio;
+    BaseDatos& BD;
 
   /**
    * @brief Determina si ya existe la base de datos. En caso de no existir,
@@ -27,7 +29,7 @@ private:
    * @brief Obtiene la información del archivo.
    * @param ruta_archivo Ruta del archivo del que se obtendrá la información
    */
-  void obtener_info_cancion(const fs::path& ruta_archivo){
+  void guardar_info_cancion(const fs::path& ruta_archivo){
       std::string extension = ruta_archivo.extension().string();
 
       try{
@@ -44,6 +46,8 @@ private:
 	      std::cout << "Path álbum: " << info.path_album << "\n";
 
 	      std::cout << "Archivo analizado con éxito: "<< ruta_archivo.string() + "\n\n";
+
+	      BD.agregar_cancion(info);
 	  }
       }catch(const ErrorMinado& e){
 	  std::cerr << e.what() << "\n";
@@ -77,25 +81,13 @@ public:
    * @brief Constructor del minero.
    * @param _ruta_directorio Ruta del directorio que se va a minar. 
    */
-  Minero(std::string& _ruta_directorio)
-    : ruta_directorio(_ruta_directorio){}
+    Minero(std::string& _ruta_directorio, BaseDatos& _BD)
+	: ruta_directorio(_ruta_directorio), BD(_BD){}
 
   /**
    * @brief Comienza a minar.
    */
   void minar(){
-      //Con una cola o pila, podría ser como se hizo en el proyecto del laberinto.
-      //Se crea una pila
-      //se mete el directorio raíz
-      //Mientras la pila no esté vacía:
-      //   sacar el último elemento
-      //   recorrer el directorio que acabamos de sacar y hacer lo siguiente:
-      //      si el elemento en el directorio es un archivo, lo analiza
-      //      si el elemento es un subdirectorio, agregarlo a la pila
-
-      //Como que recorre un directorio y cuando ya está vacío, sigue con el
-      //siguiente directorio que tenga la pila, y así hasta que esté vacía la pila
-      
       if(!fs::exists(ruta_directorio) || !fs::is_directory(ruta_directorio)){
 	  std::cout << "La ruta no existe o no es un directorio\n";
 	  return;
@@ -112,7 +104,7 @@ public:
 	      for(const auto& entry : fs::directory_iterator(actual)){
 		  if(fs::is_regular_file(entry.status())){
 		      std::cout << "Analizando: " << entry.path().string() + "\n";
-		      obtener_info_cancion(entry.path());
+		      guardar_info_cancion(entry.path());
 		  }else if(fs::is_directory(entry.status())){
 		      directorios.push(entry.path());
 		  }

@@ -10,5 +10,6 @@ executable('minero',
            'src/Modelo/Minero.cpp',
            'src/Modelo/Lector.cpp',
            'src/Modelo/ErrorMinado.cpp',
+           'src/Modelo/BaseDatos.cpp',
            dependencies : [taglib_dep, sqlite3_dep],
            install : true)

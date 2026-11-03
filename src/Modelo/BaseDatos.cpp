@@ -109,6 +109,25 @@ private:
 	return -1;
     }
 
+    bool ya_existe_cancion(std::string path){
+	const char* select = "SELECT id_rola FROM rolas WHERE path = ?;";
+	sqlite3_stmt* stmt = nullptr;
+	
+	int preparacion = sqlite3_prepare_v2(BD, select, -1, &stmt, NULL);
+
+	if(preparacion == SQLITE_OK){
+	    sqlite3_bind_text(stmt, 1, path.c_str(), -1, SQLITE_TRANSIENT);
+
+	    int ejecucion = sqlite3_step(stmt);
+
+	    if(ejecucion == SQLITE_ROW){
+	        return true;
+	    }
+	}
+
+	return false;
+    }
+
 public:
     BaseDatos(){
 	std::string home;
@@ -163,6 +182,9 @@ public:
     }
 
     void agregar_cancion(const InfoCancion& info){
+	if(ya_existe_cancion(info.path_rola)){
+	    return;
+	}
 	const char* insert = "INSERT INTO rolas (id_performer, id_album, path, title, track, year, genre) VALUES (?, ?, ?, ?, ?, ?, ?);";
 	sqlite3_stmt* stmt = nullptr;
 	
