@@ -1,13 +1,9 @@
 #include <filesystem>
 #include <taglib/fileref.h>
 #include <taglib/tag.h>
+#include <InfoCancion.cpp>
 
 namespace fs = std::filesystem;
-
-struct InfoCancion{
-    std::string name_performer,	path_album, name_album, path_rola, title_rola, genre_rola;
-    int year, track_rola;
-};
 
 class Lector{
 
@@ -27,12 +23,12 @@ public:
 
 	TagLib::Tag *tag = f.tag();
 
-	datos.title_rola = tag -> title().to8Bit(true);
+        datos.title_rola = tag -> title().to8Bit(true);
 	datos.name_performer = tag -> artist().to8Bit(true);
 	datos.genre_rola = tag -> genre().to8Bit(true);
 	datos.year = tag -> year();
 	datos.track_rola = tag -> track();
-
+	
 	datos.name_album = ruta_archivo.parent_path().filename().string();
 	std::string album = tag -> album().to8Bit(true);
 

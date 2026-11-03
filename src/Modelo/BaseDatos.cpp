@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
+#include "InfoCancion.hpp"
 
 class BaseDatos{
 
@@ -12,7 +13,7 @@ private:
     std::string ruta_bd;
     sqlite3* BD;
 
-    void crearBaseDeDatos(){
+    void crear_base_de_datos(){
 	std::string sql = "src/sources/rolas.sql";
 	std::ifstream archivo(sql);
 
@@ -34,6 +35,78 @@ private:
 	}else{
 	    std::cerr << "Base de datos creada con éxito.\n";
 	}
+    }
+
+    int obtiene_id_performer(std::string nombre){
+	int id = determina_id_performer(nombre);
+
+	if(id != -1){
+	    return id;
+	}
+
+	agregar_performer(2, nombre);
+
+	return sqlite3_last_insert_rowid(BD);
+    }
+
+    int determina_id_performer(std::string nombre){
+	const char* select = "SELECT id_performer FROM performers WHERE name = ?;";
+	sqlite3_stmt* stmt = nullptr;
+	
+	int preparacion = sqlite3_prepare_v2(BD, select, -1, &stmt, NULL);
+
+	if(preparacion == SQLITE_OK){
+	    sqlite3_bind_text(stmt, 1, nombre.c_str(), -1, SQLITE_TRANSIENT);
+
+	    int ejecucion = sqlite3_step(stmt);
+
+	    if(ejecucion == SQLITE_ROW){
+		int id = sqlite3_column_int(stmt, 0);
+
+		return id;
+	    }
+	}
+
+	sqlite3_finalize(stmt);
+
+	return -1;
+    }
+
+    int obtiene_id_album(std::string ruta, std::string nombre, int anio){
+	int id = determina_id_album(nombre);
+
+	if(id != -1){
+	    return id;
+	}
+
+	agregar_album(ruta, nombre, anio);
+
+	return sqlite3_last_insert_rowid(BD);
+    }
+
+    int determina_id_album(std::string nombre){
+	const char* select = "SELECT id_album FROM albums WHERE name = ?;";
+	sqlite3_stmt* stmt = nullptr;
+	
+	int preparacion = sqlite3_prepare_v2(BD, select, -1, &stmt, NULL);
+
+	if(preparacion == SQLITE_OK){
+	    sqlite3_bind_text(stmt, 1, nombre.c_str(), -1, SQLITE_TRANSIENT);
+
+	    int ejecucion = sqlite3_step(stmt);
+
+	    if(ejecucion == SQLITE_ROW){
+		int id = sqlite3_column_int(stmt, 0);
+
+		return id;
+	    }else{
+		
+	    }
+	}
+
+	sqlite3_finalize(stmt);
+
+	return -1;
     }
 
 public:
@@ -60,7 +133,7 @@ public:
 	}else{
 	    if(!bd_existe){
 		std::cout << "Creando base de datos...\n";
-		crearBaseDeDatos();
+		crear_base_de_datos();
 	    }else{
 		std::cerr << "Conexión exitosa a la base de datos.\n";
 	    }
@@ -77,31 +150,94 @@ public:
 	
     }
 
-    void modificarCancion(){
+    void modificar_cancion(){
 	
     }
 
-    void modificarArtista(){
+    void modificar_artista(){
 	
     }
 
-    void modificarAlbum(){
+    void modificar_album(){
 	
     }
 
-    void agregarCancion(){
+    void agregar_cancion(const InfoCancion& info){
+	const char* insert = "INSERT INTO rolas (id_performer, id_album, path, title, track, year, genre) VALUES (?, ?, ?, ?, ?, ?, ?);";
+	sqlite3_stmt* stmt = nullptr;
 	
+	int preparacion = sqlite3_prepare_v2(BD, insert, -1, &stmt, NULL);
+
+	if(preparacion == SQLITE_OK){
+	    int performer = obtiene_id_performer(info.name_performer);
+	    int album = obtiene_id_album(info.path_album, info.name_album, info.year);
+	    
+	    sqlite3_bind_int(stmt, 1, performer);
+	    sqlite3_bind_int(stmt, 2, album);
+	    sqlite3_bind_text(stmt, 3, info.path_rola.c_str(), -1, SQLITE_TRANSIENT);
+	    sqlite3_bind_text(stmt, 4, info.title_rola.c_str(), -1, SQLITE_TRANSIENT);
+	    sqlite3_bind_int(stmt, 5, info.track_rola);
+	    sqlite3_bind_int(stmt, 6, info.year);
+	    sqlite3_bind_text(stmt, 7, info.genre_rola.c_str(), -1, SQLITE_TRANSIENT);
+
+	    int ejecucion = sqlite3_step(stmt);
+
+	    if(ejecucion == SQLITE_DONE){
+		std::cout << "Se agregó la canción " << info.title_rola << "\n";
+	    }else{
+		std::cout << "No se pudo agregar la canción " << info.title_rola << "\n";
+	    }
+	}
+	
+	sqlite3_finalize(stmt);
     }
 
-    void agregarArtista(){
+    void agregar_performer(int tipo, std::string nombre){
+	const char* insert = "INSERT INTO performers (id_type, name) VALUES (?, ?);";
+	sqlite3_stmt* stmt = nullptr;
 	
+	int preparacion = sqlite3_prepare_v2(BD, insert, -1, &stmt, NULL);
+
+	if(preparacion == SQLITE_OK){
+	    sqlite3_bind_int(stmt, 1, tipo);
+	    sqlite3_bind_text(stmt, 2, nombre.c_str(), -1, SQLITE_TRANSIENT);
+
+	    int ejecucion = sqlite3_step(stmt);
+
+	    if(ejecucion == SQLITE_DONE){
+		std::cout << "Se agregó al performer " << nombre << "\n";
+	    }else{
+		std::cout << "No se pudo agregar al performer " << nombre << "\n";
+	    }
+	}
+	
+	sqlite3_finalize(stmt);
     }
 
-    void agregarAlbum(){
+    void agregar_album(std::string ruta, std::string nombre, int anio){
+	const char* insert = "INSERT INTO albums (path, name, year) VALUES (?, ?, ?);";
+	sqlite3_stmt* stmt = nullptr;
 	
+	int preparacion = sqlite3_prepare_v2(BD, insert, -1, &stmt, NULL);
+
+	if(preparacion == SQLITE_OK){
+	    sqlite3_bind_text(stmt, 1, ruta.c_str(), -1, SQLITE_TRANSIENT);
+	    sqlite3_bind_text(stmt, 2, nombre.c_str(), -1, SQLITE_TRANSIENT);
+	    sqlite3_bind_int(stmt, 3, anio);
+
+	    int ejecucion = sqlite3_step(stmt);
+
+	    if(ejecucion == SQLITE_DONE){
+		std::cout << "Se agregó el álbum " << nombre << "\n";
+	    }else{
+		std::cout << "No se pudo agregar el álbum " << nombre << "\n";
+	    }
+	}
+	
+	sqlite3_finalize(stmt);
     }
 
-    void agregarIntegrante(){
+    void agregar_integrante(){
 	
     }
 };
