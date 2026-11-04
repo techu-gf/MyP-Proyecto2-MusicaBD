@@ -19,6 +19,7 @@ private:
     QWidget* crearBarraSuperior();
     QWidget* crearListaCanciones();
     QWidget* crearCancion(int num_performer);
+    QWidget* crearInfoCancion();
 };
 
 #endif
