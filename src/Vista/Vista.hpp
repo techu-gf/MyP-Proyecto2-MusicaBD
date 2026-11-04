@@ -1,9 +1,10 @@
 #ifndef MAINWIDGET_H
 #define MAINWIDGET_H
 #include <QWidget>
+#include <QGroupBox>
 
 class QPushButton;
-class QTextBrowser;
+class QLineEdit;
 
 class Vista : public QWidget{
     Q_OBJECT
@@ -15,8 +16,7 @@ public:
 
 private:
 
-    QPushButton* boton;
-    QTextBrowser* texto;
+    QGroupBox* crearBarraSuperior();
 };
 
 #endif
