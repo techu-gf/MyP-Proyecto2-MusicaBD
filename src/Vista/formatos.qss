@@ -1,0 +1,44 @@
+QWidget#vista{
+    background-color: #121212;
+}
+
+QPushButton#boton-barra{
+    border: none;
+    background-color:#B0B0B0;
+    border-radius: 20px;
+    padding: 6px;
+}
+
+QLineEdit#entrada-texto{
+    background-color: #B0B0B0;
+    border-radius: 8px;
+    padding: 6px;
+}
+
+QWidget#seccion{
+    background-color: #444444;
+    border-radius: 8px;
+    margin: 0px;
+    padding: 0px;
+}
+
+QLabel#info-extra{
+    color: #808080;
+    font-size: 13px;
+}
+
+QLabel#info-principal{
+    color: white;
+    font-size: 15px;
+}
+
+QListWidget#lista{
+    background-color: #444444;
+    border-radius: 8px;
+    padding: 0px;
+    margin: 0px;
+}
+
+QListWidget#lista::item{
+    border-bottom: 2px solid #121212;
+}

@@ -16,7 +16,9 @@ public:
 
 private:
 
-    QGroupBox* crearBarraSuperior();
+    QWidget* crearBarraSuperior();
+    QWidget* crearListaCanciones();
+    QWidget* crearCancion(int num_performer);
 };
 
 #endif
