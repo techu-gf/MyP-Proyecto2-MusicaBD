@@ -1,4 +1,5 @@
 #include <QtWidgets>
+#include <QToolTip>
 #include "Vista.hpp"
 
 Vista::Vista(QWidget *parent) : QWidget(parent){
@@ -27,7 +28,8 @@ Vista::~Vista(){}
 
 QWidget* Vista::crearBarraSuperior(){
     QWidget *box = new QWidget();
-    QPushButton* minar = new QPushButton(box);
+
+    minar = new QPushButton(box);
     QPushButton* agregar_artista = new QPushButton(box);
     QLineEdit* consulta = new QLineEdit(box);
     
@@ -179,4 +181,12 @@ QWidget* Vista::crearInfoCancion(){
     box -> setObjectName("seccion");
 
     return box;
+}
+
+void Vista::mostrarMensaje(const std::string& mensaje){
+    QString msg = QString::fromStdString(mensaje);
+
+    QPoint punto(this -> width()/2, this -> height() - 140);
+
+    QToolTip::showText(punto, msg, this, QRect(), 5000);
 }

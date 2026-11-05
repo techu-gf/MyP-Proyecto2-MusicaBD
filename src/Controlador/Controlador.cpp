@@ -1,40 +1,48 @@
-#include "src/Modelo/BaseDatos.cpp"
+#include "Controlador.hpp"
+#include <iostream>
+#include <QPushButton>
 
-class Controlador{
+Controlador::Controlador(Vista& _vista, BaseDatos& _BD, QObject *parent)
+	: QObject(parent), vista(_vista), BD(_BD){
 
-private:
-    BaseDatos& BD;
+	connect(vista.getBotonMinar(), &QPushButton::clicked, this, &Controlador::minar);
+}
 
-public:
+Controlador::~Controlador(){}
 
-    Controlador(BaseDatos& _BD)
-	: BD(_BD){}
-
-    void consultar(){
+void Controlador::consultar(){
 	
+}
+
+void Controlador::modificar_cancion(){
+	
+}
+
+void Controlador::modificar_artista(){
+	
+}
+
+void Controlador::modificar_album(){
+	
+}
+
+void Controlador::minar(){
+    std::cout << "Iniciando minado...\n\n";
+    try{
+	std::string ruta = "Musica/";
+	Minero minero(ruta, BD);
+	minero.minar();
+    }catch(const std::exception& e){
+	std::cerr << "Hubo un error al minar: " << e.what() << "\n";
     }
 
-    void modificarCancion(){
-	
-    }
+    vista.mostrarMensaje("Minado terminado");
+}
 
-    void modificarArtista(){
+void Controlador::agregar_integrante(){
 	
-    }
+}
 
-    void modificarAlbum(){
+void Controlador::agregar_artista(){
 	
-    }
-
-    void minar(){
-	
-    }
-
-    void agregar_integrante(){
-	
-    }
-
-    void agregar_artista(){
-	
-    }
 }

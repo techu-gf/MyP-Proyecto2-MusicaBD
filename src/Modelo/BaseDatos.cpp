@@ -183,6 +183,7 @@ public:
 
     void agregar_cancion(const InfoCancion& info){
 	if(ya_existe_cancion(info.path_rola)){
+	    std::cout << "\n\nNo se agregó " << info.title_rola << " ya que ya está en la BD.\n\n";
 	    return;
 	}
 	const char* insert = "INSERT INTO rolas (id_performer, id_album, path, title, track, year, genre) VALUES (?, ?, ?, ?, ?, ?, ?);";

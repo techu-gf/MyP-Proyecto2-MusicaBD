@@ -9,10 +9,13 @@ qt6 = import('qt6')
 qt6_dep = dependency('qt6', modules: ['Core', 'Gui', 'Widgets'])
 
 qt6_files = qt6.preprocess(
-  moc_headers : ['src/Vista/Vista.hpp']
+  moc_headers : ['src/Vista/Vista.hpp', 'src/Controlador/Controlador.hpp']
 )
 
-executable('vista',
-           ['src/main.cpp', 'src/Vista/Vista.cpp', qt6_files],
+executable('controlador',
+           ['src/main.cpp',
+            'src/Vista/Vista.cpp',
+            'src/Controlador/Controlador.cpp',
+            qt6_files],
            dependencies : [taglib_dep, sqlite3_dep, qt6_dep],
            install : true)

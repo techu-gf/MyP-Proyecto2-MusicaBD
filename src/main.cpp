@@ -1,5 +1,5 @@
 #include <QtWidgets>
-#include "Vista/Vista.hpp"
+#include "Controlador/Controlador.hpp"
 
 int main(int argc, char* argv[]){
     QApplication musica(argc, argv);
@@ -12,6 +12,9 @@ int main(int argc, char* argv[]){
     }
     
     Vista ventana;
+    BaseDatos base_de_datos;
+    Controlador ctrl(ventana, base_de_datos);
+    
     ventana.resize(1000, 750);
     ventana.show();
 

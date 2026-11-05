@@ -14,12 +14,20 @@ public:
     explicit Vista(QWidget *parent = 0);
     ~Vista();
 
+    QPushButton* getBotonMinar() const{
+	return minar;
+    }
+    
+    void mostrarMensaje(const std::string& mensaje);
+
 private:
 
     QWidget* crearBarraSuperior();
     QWidget* crearListaCanciones();
     QWidget* crearCancion(int num_performer);
     QWidget* crearInfoCancion();
+
+    QPushButton* minar;
 };
 
 #endif
