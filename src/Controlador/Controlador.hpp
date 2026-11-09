@@ -24,6 +24,7 @@ private slots:
     void minar();
     void agregar_integrante();
     void agregar_artista();
+    void cargar_bd();
 };
 
 #endif

@@ -165,8 +165,52 @@ public:
 	}
     }
 
+    bool es_vacia(){
+	const char* sql = "SELECT * FROM rolas LIMIT 1";
+	sqlite3_stmt* stmt;
+	bool es_vacia = true;
+
+	int preparacion = sqlite3_prepare_v2(BD, sql, -1, &stmt, NULL);
+
+	if(preparacion == SQLITE_OK){
+	    int resultado = sqlite3_step(stmt);
+	    es_vacia = (resultado != SQLITE_ROW);
+	}
+
+	sqlite3_finalize(stmt);
+	return es_vacia;
+    }
+
     void consultar(){
 	
+    }
+
+    std::vector<InfoCancion> obtener_info_canciones(){
+	std::vector<InfoCancion> canciones;
+	std::string consulta = "SELECT rolas.title, performers.name, albums.name, rolas.track, rolas.year, rolas.genre "
+	    "FROM rolas "
+	    "LEFT JOIN performers ON rolas.id_performer = performers.id_performer "
+	    "LEFT JOIN albums ON rolas.id_album = albums.id_album;";
+	sqlite3_stmt* stmt = nullptr;
+	
+	int preparacion = sqlite3_prepare_v2(BD, consulta.c_str(), -1, &stmt, NULL);
+
+	if(preparacion == SQLITE_OK){
+	    while(sqlite3_step(stmt) == SQLITE_ROW){
+		InfoCancion cancion;
+		cancion.title_rola = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+		cancion.name_performer = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+		cancion.name_album = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+		cancion.track_rola = sqlite3_column_int(stmt, 3);
+		cancion.year = sqlite3_column_int(stmt, 4);
+		cancion.genre_rola = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5));
+
+		canciones.push_back(cancion);
+	    }
+	}
+
+	sqlite3_finalize(stmt);
+	return canciones;
     }
 
     void modificar_cancion(){
@@ -181,38 +225,43 @@ public:
 	
     }
 
-    void agregar_cancion(const InfoCancion& info){
+    bool agregar_cancion(const InfoCancion& info){
 	if(ya_existe_cancion(info.path_rola)){
 	    std::cout << "\n\nNo se agregó " << info.title_rola << " ya que ya está en la BD.\n\n";
-	    return;
+	    return false;
 	}
 	const char* insert = "INSERT INTO rolas (id_performer, id_album, path, title, track, year, genre) VALUES (?, ?, ?, ?, ?, ?, ?);";
 	sqlite3_stmt* stmt = nullptr;
 	
 	int preparacion = sqlite3_prepare_v2(BD, insert, -1, &stmt, NULL);
 
-	if(preparacion == SQLITE_OK){
-	    int performer = obtiene_id_performer(info.name_performer);
-	    int album = obtiene_id_album(info.path_album, info.name_album, info.year);
+	if(preparacion != SQLITE_OK){
+	    return false;
+	}
+        
+	int performer = obtiene_id_performer(info.name_performer);
+	int album = obtiene_id_album(info.path_album, info.name_album, info.year);
 	    
-	    sqlite3_bind_int(stmt, 1, performer);
-	    sqlite3_bind_int(stmt, 2, album);
-	    sqlite3_bind_text(stmt, 3, info.path_rola.c_str(), -1, SQLITE_TRANSIENT);
-	    sqlite3_bind_text(stmt, 4, info.title_rola.c_str(), -1, SQLITE_TRANSIENT);
-	    sqlite3_bind_int(stmt, 5, info.track_rola);
-	    sqlite3_bind_int(stmt, 6, info.year);
-	    sqlite3_bind_text(stmt, 7, info.genre_rola.c_str(), -1, SQLITE_TRANSIENT);
+	sqlite3_bind_int(stmt, 1, performer);
+	sqlite3_bind_int(stmt, 2, album);
+	sqlite3_bind_text(stmt, 3, info.path_rola.c_str(), -1, SQLITE_TRANSIENT);
+	sqlite3_bind_text(stmt, 4, info.title_rola.c_str(), -1, SQLITE_TRANSIENT);
+	sqlite3_bind_int(stmt, 5, info.track_rola);
+	sqlite3_bind_int(stmt, 6, info.year);
+	sqlite3_bind_text(stmt, 7, info.genre_rola.c_str(), -1, SQLITE_TRANSIENT);
 
-	    int ejecucion = sqlite3_step(stmt);
+	int ejecucion = sqlite3_step(stmt);
+	bool agregado = false;
 
-	    if(ejecucion == SQLITE_DONE){
-		std::cout << "Se agregó la canción " << info.title_rola << "\n";
-	    }else{
-		std::cout << "No se pudo agregar la canción " << info.title_rola << "\n";
-	    }
+	if(ejecucion == SQLITE_DONE){
+	    std::cout << "Se agregó la canción " << info.title_rola << "\n";
+	    agregado = true;
+	}else{
+	    std::cout << "No se pudo agregar la canción " << info.title_rola << "\n";
 	}
 	
 	sqlite3_finalize(stmt);
+	return agregado;
     }
 
     void agregar_performer(int tipo, std::string nombre){

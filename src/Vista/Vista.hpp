@@ -1,7 +1,8 @@
 #ifndef MAINWIDGET_H
 #define MAINWIDGET_H
 #include <QWidget>
-#include <QGroupBox>
+#include "src/Modelo/InfoCancion.hpp"
+#include <QListWidget>
 
 class QPushButton;
 class QLineEdit;
@@ -18,16 +19,18 @@ public:
 	return minar;
     }
     
-    void mostrarMensaje(const std::string& mensaje);
+    void mostrar_mensaje(const std::string& mensaje);
+    void agregar_cancion(const InfoCancion& info);
 
 private:
-
-    QWidget* crearBarraSuperior();
-    QWidget* crearListaCanciones();
-    QWidget* crearCancion(int num_performer);
-    QWidget* crearInfoCancion();
+    
+    QWidget* crear_barra_superior();
+    QWidget* crear_lista_canciones();
+    QWidget* crear_cancion(const InfoCancion& info);
+    QWidget* crear_info_cancion();
 
     QPushButton* minar;
+    QListWidget* lista_canciones;
 };
 
 #endif

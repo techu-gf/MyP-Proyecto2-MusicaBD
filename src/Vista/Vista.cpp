@@ -3,9 +3,9 @@
 #include "Vista.hpp"
 
 Vista::Vista(QWidget *parent) : QWidget(parent){
-    QWidget *barra_superior = crearBarraSuperior();
-    QWidget *lista_canciones = crearListaCanciones();
-    QWidget *info_cancion = crearInfoCancion();
+    QWidget *barra_superior = crear_barra_superior();
+    QWidget *lista_canciones = crear_lista_canciones();
+    QWidget *info_cancion = crear_info_cancion();
     
     QGridLayout *mainLayout = new QGridLayout;
     mainLayout -> addWidget(barra_superior, 0, 0, 1, 2);
@@ -26,7 +26,7 @@ Vista::Vista(QWidget *parent) : QWidget(parent){
 
 Vista::~Vista(){}
 
-QWidget* Vista::crearBarraSuperior(){
+QWidget* Vista::crear_barra_superior(){
     QWidget *box = new QWidget();
 
     minar = new QPushButton(box);
@@ -58,22 +58,13 @@ QWidget* Vista::crearBarraSuperior(){
     return box;
 }
 
-QWidget* Vista::crearListaCanciones(){
+QWidget* Vista::crear_lista_canciones(){
     QWidget *box = new QWidget();
 
-    QListWidget* lista_canciones = new QListWidget(box);
+    lista_canciones = new QListWidget(box);
     lista_canciones -> setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     lista_canciones -> setObjectName("lista");
-
-    for(int i = 0; i < 10; i++){
-	QListWidgetItem *widget_cancion = new QListWidgetItem(lista_canciones);
-
-	QWidget *cancion = crearCancion(i);
-
-	widget_cancion -> setSizeHint(cancion -> sizeHint());
-	lista_canciones -> setItemWidget(widget_cancion, cancion);
-    }
-
+    
     QVBoxLayout *layout = new QVBoxLayout(box);
     layout -> addWidget(lista_canciones);
     layout -> setContentsMargins(0, 0, 0, 0);
@@ -85,14 +76,22 @@ QWidget* Vista::crearListaCanciones(){
     return box;
 }
 
-QWidget* Vista::crearCancion(int num_performer){
+void Vista::agregar_cancion(const InfoCancion& info){
+    QListWidgetItem *widget = new QListWidgetItem(lista_canciones);
+    QWidget *cancion = crear_cancion(info);
+
+    widget -> setSizeHint(cancion -> sizeHint());
+    lista_canciones -> setItemWidget(widget, cancion);
+}
+
+QWidget* Vista::crear_cancion(const InfoCancion& info){
     QWidget *cancion = new QWidget();
 
     QPushButton* ver_mas = new QPushButton(cancion);
-    QLabel *performer = new QLabel(QString::number(num_performer), cancion);
-    QLabel *title = new QLabel("Cancion" + QString::number(num_performer), cancion);
-    QLabel *year = new QLabel("2026", cancion);
-    QLabel *genero = new QLabel("S/G", cancion);
+    QLabel *performer = new QLabel(QString::fromStdString(info.name_performer), cancion);
+    QLabel *title = new QLabel(QString::fromStdString(info.title_rola), cancion);
+    QLabel *year = new QLabel(QString::number(info.year), cancion);
+    QLabel *genero = new QLabel(QString::fromStdString(info.genre_rola), cancion);
 
     performer -> setObjectName("info-extra");
     title -> setObjectName("info-principal");
@@ -107,21 +106,21 @@ QWidget* Vista::crearCancion(int num_performer){
     cuadro_info2 -> addWidget(year);
     cuadro_info2 -> addWidget(genero);
     
-    QHBoxLayout *info = new QHBoxLayout(cancion);
-    info -> setContentsMargins(20, 10, 20, 10);
-    info -> setSpacing(15);
-    info -> addWidget(ver_mas);
-    info -> addLayout(cuadro_info1);
-    info -> addStretch();
-    info -> addLayout(cuadro_info2);
+    QHBoxLayout *info_contenedor = new QHBoxLayout(cancion);
+    info_contenedor -> setContentsMargins(20, 10, 20, 10);
+    info_contenedor -> setSpacing(15);
+    info_contenedor -> addWidget(ver_mas);
+    info_contenedor -> addLayout(cuadro_info1);
+    info_contenedor -> addStretch();
+    info_contenedor -> addLayout(cuadro_info2);
 
-    cancion -> setLayout(info);
+    cancion -> setLayout(info_contenedor);
     cancion -> setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
     
     return cancion;
 }
 
-QWidget* Vista::crearInfoCancion(){
+QWidget* Vista::crear_info_cancion(){
     QWidget *box = new QWidget();
     
     QLabel *imagen_album = new QLabel(box);
@@ -183,7 +182,7 @@ QWidget* Vista::crearInfoCancion(){
     return box;
 }
 
-void Vista::mostrarMensaje(const std::string& mensaje){
+void Vista::mostrar_mensaje(const std::string& mensaje){
     QString msg = QString::fromStdString(mensaje);
 
     QPoint punto(this -> width()/2, this -> height() - 140);

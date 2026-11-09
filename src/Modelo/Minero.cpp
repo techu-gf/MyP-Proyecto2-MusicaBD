@@ -18,62 +18,26 @@ private:
     BaseDatos& BD;
 
   /**
-   * @brief Determina si ya existe la base de datos. En caso de no existir,
-   * crea la base de datos. 
-   */
-  void encuentra_bd(){
-    
-  }
-
-  /**
    * @brief Obtiene la información del archivo.
    * @param ruta_archivo Ruta del archivo del que se obtendrá la información
    */
-  void guardar_info_cancion(const fs::path& ruta_archivo){
+  InfoCancion guardar_info_cancion(const fs::path& ruta_archivo){
       std::string extension = ruta_archivo.extension().string();
 
       try{
 	  if(extension == ".mp3" || extension == ".MP3"){
 	      InfoCancion info = Lector::obtener_info(ruta_archivo);
+	      bool agregada = BD.agregar_cancion(info);
 
-	      std::cout << "Artista: " << info.name_performer << "\n";
-	      std::cout << "Nombre: " << info.title_rola << "\n";
-	      std::cout << "Álbum: " << info.name_album << "\n";
-	      std::cout << "Año: " << info.year << "\n";
-	      std::cout << "No. Cancion: " << info.track_rola << "\n";
-	      std::cout << "Género: " << info.genre_rola << "\n";
-	      std::cout << "Path canción: " << info.path_rola << "\n";
-	      std::cout << "Path álbum: " << info.path_album << "\n";
-
-	      std::cout << "Archivo analizado con éxito: "<< ruta_archivo.string() + "\n\n";
-
-	      BD.agregar_cancion(info);
+	      if(agregada){
+		  return info;
+	      }
 	  }
       }catch(const ErrorMinado& e){
 	  std::cerr << e.what() << "\n";
       }
 
-  }
-
-  /**
-   * @brief Agrega la canción a la base de datos. 
-   */
-  void agregar_cancion(){
-    
-  }
-
-  /**
-   * @brief Agrega el artista a la base de datos.
-   */
-  void agregar_artista(){
-    
-  }
-
-  /**
-   * @brief Agrega el album a la base de datos.
-   */
-  void agregar_album(){
-    
+      return InfoCancion{};
   }
 
 public:
@@ -87,34 +51,37 @@ public:
   /**
    * @brief Comienza a minar.
    */
-  void minar(){
-      if(!fs::exists(ruta_directorio) || !fs::is_directory(ruta_directorio)){
-	  std::cout << "La ruta no existe o no es un directorio\n";
-	  return;
-      }
+    std::vector<InfoCancion> minar(){
+	if(!fs::exists(ruta_directorio) || !fs::is_directory(ruta_directorio)){
+	    std::cout << "La ruta no existe o no es un directorio\n";
+	}
 
-      std::stack<fs::path> directorios;
-      directorios.push(ruta_directorio);
+	std::vector<InfoCancion> canciones;
+	std::stack<fs::path> directorios;
+	directorios.push(ruta_directorio);
 
-      while(!directorios.empty()){
-	  fs::path actual = directorios.top();
-	  directorios.pop();
+	while(!directorios.empty()){
+	    fs::path actual = directorios.top();
+	    directorios.pop();
 	  
-	  try{
-	      for(const auto& entry : fs::directory_iterator(actual)){
-		  if(fs::is_regular_file(entry.status())){
-		      std::cout << "Analizando: " << entry.path().string() + "\n";
-		      guardar_info_cancion(entry.path());
-		  }else if(fs::is_directory(entry.status())){
-		      directorios.push(entry.path());
-		  }
-	      }
-	  }catch(const fs::filesystem_error& e){
-	      std::cerr << "No se pudo acceder a la ruta " << actual << "\n";
-	  }
-      }
+	    try{
+		for(const auto& entry : fs::directory_iterator(actual)){
+		    if(fs::is_regular_file(entry.status())){
+		        InfoCancion cancion = guardar_info_cancion(entry.path());
 
-      std::cout << "Minado terminado.\n";
-  }
+			if(!cancion.title_rola.empty()){
+			    canciones.push_back(cancion);
+			}
+		    }else if(fs::is_directory(entry.status())){
+			directorios.push(entry.path());
+		    }
+		}
+	    }catch(const fs::filesystem_error& e){
+		std::cerr << "No se pudo acceder a la ruta " << actual << "\n";
+	    }
+	}
+
+	return canciones;
+    }
   
 };
