@@ -11,6 +11,7 @@ class Controlador : public QObject{
 private:
     Vista& vista;
     BaseDatos& BD;
+    InfoCancion cancion_actual;
 
 public:
     explicit Controlador(Vista& _vista, BaseDatos& _BD, QObject *parent = nullptr);
@@ -18,6 +19,7 @@ public:
 
 private slots:
     void consultar();
+    void modificar_info();
     void modificar_cancion();
     void modificar_artista();
     void modificar_album();

@@ -187,7 +187,7 @@ public:
 
     std::vector<InfoCancion> obtener_info_canciones(){
 	std::vector<InfoCancion> canciones;
-	std::string consulta = "SELECT rolas.title, performers.name, albums.name, rolas.track, rolas.year, rolas.genre "
+	std::string consulta = "SELECT rolas.title, performers.name, albums.name, rolas.track, rolas.year, rolas.genre, rolas.path "
 	    "FROM rolas "
 	    "LEFT JOIN performers ON rolas.id_performer = performers.id_performer "
 	    "LEFT JOIN albums ON rolas.id_album = albums.id_album;";
@@ -204,6 +204,7 @@ public:
 		cancion.track_rola = sqlite3_column_int(stmt, 3);
 		cancion.year = sqlite3_column_int(stmt, 4);
 		cancion.genre_rola = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5));
+		cancion.path_rola = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6));
 
 		canciones.push_back(cancion);
 	    }
@@ -213,16 +214,85 @@ public:
 	return canciones;
     }
 
-    void modificar_cancion(){
+    void modificar_cancion(std::string campo, std::string nuevo_valor, std::string path){
+	std::string modificacion = "UPDATE rolas SET " + campo +
+	    " = ? WHERE path = ?;";
+	sqlite3_stmt* stmt = nullptr;
+
+	int preparacion = sqlite3_prepare_v2(BD, modificacion.c_str(), -1, &stmt, NULL);
+
+	if(preparacion != SQLITE_OK){
+	    return;
+	}
 	
+	sqlite3_bind_text(stmt, 1, nuevo_valor.c_str(), -1, SQLITE_TRANSIENT);
+	sqlite3_bind_text(stmt, 2, path.c_str(), -1, SQLITE_TRANSIENT);
+	    
+	int ejecucion = sqlite3_step(stmt);
+
+	if(ejecucion == SQLITE_DONE){
+	    int filas_modificadas = sqlite3_changes(BD);
+	    if(filas_modificadas > 0){
+		std::cout << "Se actualizó con éxito el campo " << campo << " de rolas.\n";
+	    }else{
+		std::cout << "Se ejecutó pero no se cambió nada.\n";
+	    }
+	    
+	}else{
+	    std::cout << "No se pudo actualizar el campo " << campo << " de rolas.\n";
+	}
+	
+	sqlite3_finalize(stmt);
     }
 
-    void modificar_artista(){
+    void modificar_artista(std::string campo, std::string nuevo_valor, std::string path){
+	std::string modificacion = "UPDATE performers SET " + campo +
+	    " = ? WHERE id_performer = (SELECT id_performer FROM rolas WHERE path = ?);";
+	sqlite3_stmt* stmt = nullptr;
+
+	int preparacion = sqlite3_prepare_v2(BD, modificacion.c_str(), -1, &stmt, NULL);
+
+	if(preparacion != SQLITE_OK){
+	    return;
+	}
 	
+	sqlite3_bind_text(stmt, 1, nuevo_valor.c_str(), -1, SQLITE_TRANSIENT);
+	sqlite3_bind_text(stmt, 2, path.c_str(), -1, SQLITE_TRANSIENT);
+	    
+	int ejecucion = sqlite3_step(stmt);
+
+	if(ejecucion == SQLITE_DONE){
+	    std::cout << "Se actualizó con éxito el campo " << campo << " de performer.\n";
+	}else{
+	    std::cout << "No se pudo actualizar el campo " << campo << " de performers.\n";
+	}
+	
+	sqlite3_finalize(stmt);
     }
 
-    void modificar_album(){
+    void modificar_album(std::string campo, std::string nuevo_valor, std::string path){
+	std::string modificacion = "UPDATE albums SET " + campo +
+	    " = ? WHERE id_album = (SELECT id_album FROM rolas WHERE path = ?);";
+	sqlite3_stmt* stmt = nullptr;
+
+	int preparacion = sqlite3_prepare_v2(BD, modificacion.c_str(), -1, &stmt, NULL);
+
+	if(preparacion != SQLITE_OK){
+	    return;
+	}
 	
+	sqlite3_bind_text(stmt, 1, nuevo_valor.c_str(), -1, SQLITE_TRANSIENT);
+	sqlite3_bind_text(stmt, 2, path.c_str(), -1, SQLITE_TRANSIENT);
+	    
+	int ejecucion = sqlite3_step(stmt);
+
+	if(ejecucion == SQLITE_DONE){
+	    std::cout << "Se actualizó con éxito el campo " << campo << " de albums.\n";
+	}else{
+	    std::cout << "No se pudo actualizar el campo " << campo << " de albums.\n";
+	}
+	
+	sqlite3_finalize(stmt);
     }
 
     bool agregar_cancion(const InfoCancion& info){

@@ -23,8 +23,34 @@ public:
     void mostrar_mensaje(const std::string& mensaje);
     void agregar_cancion(const InfoCancion& info);
     void mostrar_info(const InfoCancion& info);
+    void actualizar_info_cancion(const InfoCancion& info);
+
     QListWidget* get_lista_canciones() const{
 	return lista_canciones;
+    }
+
+    QLineEdit* get_campo_cancion() const{
+	return cancion;
+    }
+
+    QLineEdit* get_campo_artista() const{
+	return artista;
+    }
+
+    QLineEdit* get_campo_album() const{
+	return album;
+    }
+
+    QLineEdit* get_campo_track() const{
+	return track;
+    }
+
+    QLineEdit* get_campo_anio() const{
+	return anio;
+    }
+
+    QLineEdit* get_campo_genero() const{
+	return genero;
     }
 
 private:

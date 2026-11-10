@@ -132,6 +132,18 @@ QWidget* Vista::crear_cancion(const InfoCancion& info){
     return cancion;
 }
 
+void Vista::actualizar_info_cancion(const InfoCancion& info){
+    QListWidgetItem *item = lista_canciones -> currentItem();
+
+    if(!item) return;
+
+    item -> setData(Qt::UserRole, QVariant::fromValue(info));
+
+    QWidget *nuevo_widget = crear_cancion(info);
+    item -> setSizeHint(nuevo_widget -> sizeHint());
+    lista_canciones -> setItemWidget(item, nuevo_widget);
+}
+
 QWidget* Vista::crear_info_cancion(){
     QWidget *box = new QWidget();
     
@@ -168,7 +180,7 @@ QWidget* Vista::crear_info_cancion(){
     QLabel *generoLetrero = new QLabel("Género:", box);
     genero = new QLineEdit(box);
     generoLetrero -> setObjectName("info-principal"); 
-    genero -> setObjectName("entrada-texto"); 
+    genero -> setObjectName("entrada-texto");
 
     QVBoxLayout *info = new QVBoxLayout(box);
     info -> setContentsMargins(20, 10, 20, 10);
