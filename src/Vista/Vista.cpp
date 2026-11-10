@@ -80,6 +80,7 @@ void Vista::agregar_cancion(const InfoCancion& info){
     QListWidgetItem *widget = new QListWidgetItem(lista_canciones);
     QWidget *cancion = crear_cancion(info);
 
+    widget -> setData(Qt::UserRole, QVariant::fromValue(info));
     widget -> setSizeHint(cancion -> sizeHint());
     lista_canciones -> setItemWidget(widget, cancion);
 }
@@ -134,38 +135,38 @@ QWidget* Vista::crear_cancion(const InfoCancion& info){
 QWidget* Vista::crear_info_cancion(){
     QWidget *box = new QWidget();
     
-    QLabel *imagen_album = new QLabel(box);
+    imagen_album = new QLabel(box);
     imagen_album -> setFixedSize(100, 100);
 
     QLabel *cancionLetrero = new QLabel("Cancion:", box);
-    QLineEdit *cancion = new QLineEdit(box);
+    cancion = new QLineEdit(box);
     cancionLetrero -> setObjectName("info-principal");
     cancion -> setObjectName("entrada-texto"); 
     
     QLabel *artistaLetrero = new QLabel("Artista:", box);
-    QLineEdit *artista = new QLineEdit(box);
+    artista = new QLineEdit(box);
     artistaLetrero -> setObjectName("info-principal");
     artista -> setObjectName("entrada-texto"); 
     
     QLabel *albumLetrero = new QLabel("Album:", box);
-    QLineEdit *album = new QLineEdit(box);
+    album = new QLineEdit(box);
     albumLetrero -> setObjectName("info-principal"); 
     album -> setObjectName("entrada-texto"); 
 
     QLabel *trackLetrero = new QLabel("No. de canción:", box);
-    QLineEdit *track = new QLineEdit(box);
+    track = new QLineEdit(box);
     track -> setValidator(new QIntValidator(box));
     track -> setObjectName("entrada-texto"); 
     trackLetrero -> setObjectName("info-principal");
 
     QLabel *anioLetrero = new QLabel("Año:", box);
-    QLineEdit *anio = new QLineEdit(box);
+    anio = new QLineEdit(box);
     anio -> setValidator(new QIntValidator(box));
     anio -> setObjectName("entrada-texto"); 
     anioLetrero -> setObjectName("info-principal"); 
 
     QLabel *generoLetrero = new QLabel("Género:", box);
-    QLineEdit *genero = new QLineEdit(box);
+    genero = new QLineEdit(box);
     generoLetrero -> setObjectName("info-principal"); 
     genero -> setObjectName("entrada-texto"); 
 
@@ -185,12 +186,32 @@ QWidget* Vista::crear_info_cancion(){
     info -> addWidget(anio);
     info -> addWidget(generoLetrero);
     info -> addWidget(genero);
+    info -> setAlignment(imagen_album, Qt::AlignCenter);
 
     box -> setLayout(info);
     box -> setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
     box -> setObjectName("seccion");
 
     return box;
+}
+
+void Vista::mostrar_info(const InfoCancion& info){
+    cancion -> setText(QString::fromStdString(info.title_rola));
+    artista -> setText(QString::fromStdString(info.name_performer));
+    album -> setText(QString::fromStdString(info.name_album));
+    track -> setText(QString::number(info.track_rola));
+    anio -> setText(QString::number(info.year));
+    genero -> setText(QString::fromStdString(info.genre_rola));
+
+    QPixmap pixmap(QString::fromStdString(info.path_portada));
+
+    if(!pixmap.isNull()){
+        imagen_album -> setPixmap(pixmap.scaled(180, 180, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    }else{
+        imagen_album -> setPixmap(QPixmap("src/sources/album_predeterminado.jpg").scaled(180, 180, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    }
+    
+    imagen_album -> setFixedSize(180,180);
 }
 
 void Vista::mostrar_mensaje(const std::string& mensaje){

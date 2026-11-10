@@ -25,6 +25,7 @@ private slots:
     void agregar_integrante();
     void agregar_artista();
     void cargar_bd();
+    void mostrar_cancion(QListWidgetItem *item);
 };
 
 #endif

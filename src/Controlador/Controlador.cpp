@@ -5,8 +5,8 @@
 Controlador::Controlador(Vista& _vista, BaseDatos& _BD, QObject *parent)
 	: QObject(parent), vista(_vista), BD(_BD){
 
-	connect(vista.getBotonMinar(), &QPushButton::clicked, this, &Controlador::minar);
-
+	connect(vista.get_boton_minar(), &QPushButton::clicked, this, &Controlador::minar);
+	connect(vista.get_lista_canciones(), &QListWidget::itemClicked, this, &Controlador::mostrar_cancion);
         cargar_bd();
 }
 
@@ -39,10 +39,17 @@ void Controlador::minar(){
 	std::cerr << "Hubo un error al minar: " << e.what() << "\n";
     }
 
-    for(InfoCancion cancion : canciones){
-	vista.agregar_cancion(cancion);
-    }
+    if(!canciones.empty()){
+	InfoCancion ultima_cancion;
 
+	for(InfoCancion cancion : canciones){
+	    vista.agregar_cancion(cancion);
+	    ultima_cancion = cancion;
+	}
+    
+	vista.mostrar_info(ultima_cancion);
+    }
+    
     vista.mostrar_mensaje("Minado terminado");
 }
 
@@ -57,6 +64,7 @@ void Controlador::agregar_artista(){
 void Controlador::cargar_bd(){
     if(!BD.es_vacia()){
 	std::vector<InfoCancion> canciones = BD.obtener_info_canciones();
+	InfoCancion ultima_cancion;
 
 	for(InfoCancion &cancion : canciones){
 	    const char* home = std::getenv("HOME");
@@ -76,6 +84,18 @@ void Controlador::cargar_bd(){
 		cancion.path_portada = "src/sources/album_predeterminado.jpg";
 	    }
 	    vista.agregar_cancion(cancion);
+
+	    ultima_cancion = cancion;
 	}
+
+	vista.mostrar_info(ultima_cancion);
     }
+}
+
+void Controlador::mostrar_cancion(QListWidgetItem *item){
+    if(!item) return;
+
+    InfoCancion info = item -> data(Qt::UserRole).value<InfoCancion>();
+
+    vista.mostrar_info(info);
 }
