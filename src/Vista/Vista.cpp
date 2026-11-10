@@ -93,6 +93,17 @@ QWidget* Vista::crear_cancion(const InfoCancion& info){
     QLabel *year = new QLabel(QString::number(info.year), cancion);
     QLabel *genero = new QLabel(QString::fromStdString(info.genre_rola), cancion);
 
+    QPixmap pixmap(QString::fromStdString(info.path_portada));
+
+    if(!pixmap.isNull()){
+	ver_mas -> setIcon(QIcon(pixmap));
+    }else{
+	ver_mas -> setIcon(QIcon("src/sources/album_predeterminado.jpg"));
+    }
+
+    ver_mas -> setIconSize(QSize(60, 60));
+    ver_mas -> setFixedSize(60, 60);
+    
     performer -> setObjectName("info-extra");
     title -> setObjectName("info-principal");
     year -> setObjectName("info-extra");
