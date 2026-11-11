@@ -187,7 +187,7 @@ public:
 
     std::vector<InfoCancion> obtener_info_canciones(){
 	std::vector<InfoCancion> canciones;
-	std::string consulta = "SELECT rolas.title, performers.name, albums.name, rolas.track, rolas.year, rolas.genre, rolas.path "
+	std::string consulta = "SELECT rolas.title, performers.name, albums.name, rolas.track, rolas.year, rolas.genre, rolas.path, performers.id_type "
 	    "FROM rolas "
 	    "LEFT JOIN performers ON rolas.id_performer = performers.id_performer "
 	    "LEFT JOIN albums ON rolas.id_album = albums.id_album;";
@@ -205,6 +205,7 @@ public:
 		cancion.year = sqlite3_column_int(stmt, 4);
 		cancion.genre_rola = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5));
 		cancion.path_rola = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6));
+		cancion.type_performer = sqlite3_column_int(stmt, 7);
 
 		canciones.push_back(cancion);
 	    }

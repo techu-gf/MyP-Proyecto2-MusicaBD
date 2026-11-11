@@ -107,6 +107,8 @@ public:
 	    }
 	}
 
+	datos.type_performer = 2;
+
 	return datos;
     }
 };

@@ -182,6 +182,20 @@ QWidget* Vista::crear_info_cancion(){
     generoLetrero -> setObjectName("info-principal"); 
     genero -> setObjectName("entrada-texto");
 
+    QLabel *tipoLetrero = new QLabel("Tipo de performer:", box);
+    tipoLetrero -> setObjectName("info-principal"); 
+    tipo_performer = new QComboBox(box);
+    tipo_performer -> setObjectName("tipo-performer");
+    tipo_performer -> addItem("Solista");
+    tipo_performer -> addItem("Grupo");
+    tipo_performer -> addItem("Unknown");
+
+    QLabel *integrantesLetrero = new QLabel("Integrantes: ", box);
+    integrantesLetrero -> setObjectName("info-principal");
+    integrantes = new QLineEdit(box);
+    integrantes -> setObjectName("entrada-texto");
+    integrantes -> setEnabled(false);
+
     QVBoxLayout *info = new QVBoxLayout(box);
     info -> setContentsMargins(20, 10, 20, 10);
     info -> setSpacing(10);
@@ -198,6 +212,10 @@ QWidget* Vista::crear_info_cancion(){
     info -> addWidget(anio);
     info -> addWidget(generoLetrero);
     info -> addWidget(genero);
+    info -> addWidget(tipoLetrero);
+    info -> addWidget(tipo_performer);
+    info -> addWidget(integrantesLetrero);
+    info -> addWidget(integrantes);
     info -> setAlignment(imagen_album, Qt::AlignCenter);
 
     box -> setLayout(info);
@@ -214,6 +232,18 @@ void Vista::mostrar_info(const InfoCancion& info){
     track -> setText(QString::number(info.track_rola));
     anio -> setText(QString::number(info.year));
     genero -> setText(QString::fromStdString(info.genre_rola));
+    tipo_performer -> blockSignals(true);
+
+    int tipoP = info.type_performer;
+    tipo_performer -> setCurrentIndex(tipoP);
+    
+    if(tipoP == 1){
+	integrantes -> setEnabled(true);
+    }else{
+	integrantes -> setEnabled(false);
+    }
+
+    tipo_performer -> blockSignals(false);
 
     QPixmap pixmap(QString::fromStdString(info.path_portada));
 
@@ -224,6 +254,7 @@ void Vista::mostrar_info(const InfoCancion& info){
     }
     
     imagen_album -> setFixedSize(180,180);
+    
 }
 
 void Vista::mostrar_mensaje(const std::string& mensaje){

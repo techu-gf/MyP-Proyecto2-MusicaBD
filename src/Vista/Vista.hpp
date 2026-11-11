@@ -7,6 +7,7 @@
 class QPushButton;
 class QLineEdit;
 class QLabel;
+class QComboBox;
 
 class Vista : public QWidget{
     Q_OBJECT
@@ -53,6 +54,10 @@ public:
 	return genero;
     }
 
+    QComboBox* get_tipo_performer() const{
+	return tipo_performer;
+    }
+
 private:
     
     QWidget* crear_barra_superior();
@@ -69,6 +74,8 @@ private:
     QLineEdit *track;
     QLineEdit *anio;
     QLineEdit *genero;
+    QComboBox *tipo_performer;
+    QLineEdit *integrantes;
     
 };
 

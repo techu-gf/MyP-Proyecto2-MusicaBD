@@ -2,11 +2,13 @@
 #include <iostream>
 #include <QPushButton>
 #include <QLineEdit>
+#include <QComboBox>
 
 Controlador::Controlador(Vista& _vista, BaseDatos& _BD, QObject *parent)
 	: QObject(parent), vista(_vista), BD(_BD){
 
 	connect(vista.get_boton_minar(), &QPushButton::clicked, this, &Controlador::minar);
+	
 	connect(vista.get_lista_canciones(), &QListWidget::itemClicked, this, &Controlador::mostrar_cancion);
 	connect(vista.get_campo_cancion(), &QLineEdit::editingFinished, this, &Controlador::modificar_info);
 	connect(vista.get_campo_artista(), &QLineEdit::editingFinished, this, &Controlador::modificar_info);
@@ -15,6 +17,7 @@ Controlador::Controlador(Vista& _vista, BaseDatos& _BD, QObject *parent)
 	connect(vista.get_campo_anio(), &QLineEdit::editingFinished, this, &Controlador::modificar_info);
 	connect(vista.get_campo_genero(), &QLineEdit::editingFinished, this, &Controlador::modificar_info);
         cargar_bd();
+	connect(vista.get_tipo_performer(), qOverload<int>(&QComboBox::currentIndexChanged), this, &Controlador::modificar_info);
 }
 
 Controlador::~Controlador(){}
@@ -24,39 +27,58 @@ void Controlador::consultar(){
 }
 
 void Controlador::modificar_info(){
-    QLineEdit *campo = qobject_cast<QLineEdit*>(sender());
+    QObject *modificado = sender();
 
-    if(!campo) return;
-
-    QString nueva_info = campo -> text();
+    if(!modificado) return;
+    
     std::string columna = "";
     std::string path = cancion_actual.path_rola;
 
-    if(campo == vista.get_campo_cancion()){
-	columna = "title";
-	BD.modificar_cancion(columna, nueva_info.toStdString(), path);
-	cancion_actual.title_rola = nueva_info.toStdString();
-    }else  if(campo == vista.get_campo_track()){
-	columna = "track";
-	BD.modificar_cancion(columna, nueva_info.toStdString(), path);
-	cancion_actual.track_rola = nueva_info.toInt();
-    }else  if(campo == vista.get_campo_anio()){
-	columna = "year";
-	BD.modificar_cancion(columna, nueva_info.toStdString(), path);
-	BD.modificar_album(columna, nueva_info.toStdString(), path);
-	cancion_actual.year = nueva_info.toInt();
-    }else  if(campo == vista.get_campo_genero()){
-	columna = "genre";
-	BD.modificar_cancion(columna, nueva_info.toStdString(), path);
-	cancion_actual.genre_rola = nueva_info.toStdString();
-    }else if(campo == vista.get_campo_artista()){
-	columna = "name";
-	BD.modificar_artista(columna, nueva_info.toStdString(), path);
-	cancion_actual.name_performer = nueva_info.toStdString();
-    }else if(campo == vista.get_campo_album()){
-	columna = "name";
-	BD.modificar_album(columna, nueva_info.toStdString(), path);
-	cancion_actual.name_album = nueva_info.toStdString();
+    if(QLineEdit *campo = qobject_cast<QLineEdit*>(modificado)){
+	QString nueva_info = campo -> text();
+	
+	if(campo == vista.get_campo_cancion()){
+	    columna = "title";
+	    BD.modificar_cancion(columna, nueva_info.toStdString(), path);
+	    cancion_actual.title_rola = nueva_info.toStdString();
+	}else  if(campo == vista.get_campo_track()){
+	    columna = "track";
+	    int no_vacio = nueva_info.isEmpty() ? 0 : nueva_info.toInt();
+	    BD.modificar_cancion(columna, std::to_string(no_vacio), path);
+	    cancion_actual.track_rola = no_vacio;
+	}else  if(campo == vista.get_campo_anio()){
+	    columna = "year";
+	    int no_vacio = nueva_info.isEmpty() ? 0 : nueva_info.toInt();
+	    BD.modificar_cancion(columna, std::to_string(no_vacio), path);
+	    BD.modificar_album(columna, std::to_string(no_vacio), path);
+	    cancion_actual.year = no_vacio;
+	}else  if(campo == vista.get_campo_genero()){
+	    columna = "genre";
+	    BD.modificar_cancion(columna, nueva_info.toStdString(), path);
+	    cancion_actual.genre_rola = nueva_info.toStdString();
+	}else if(campo == vista.get_campo_artista()){
+	    columna = "name";
+	    BD.modificar_artista(columna, nueva_info.toStdString(), path);
+	    cancion_actual.name_performer = nueva_info.toStdString();
+
+	    vista.get_lista_canciones() -> clear();
+	    cargar_bd();
+	}else if(campo == vista.get_campo_album()){
+	    columna = "name";
+	    BD.modificar_album(columna, nueva_info.toStdString(), path);
+	    cancion_actual.name_album = nueva_info.toStdString();
+	}
+    }else if(QComboBox *tipo = qobject_cast<QComboBox*>(modificado)){
+	if(tipo == vista.get_tipo_performer()){
+	    columna = "id_type";
+	    int tipo_performer = tipo -> currentIndex();
+
+	    BD.modificar_artista(columna, std::to_string(tipo_performer), path);
+	    cancion_actual.type_performer = tipo_performer;
+	    
+	    vista.get_lista_canciones() -> clear();
+	    cargar_bd();
+	}
     }
 
     if(columna.empty()) return;
