@@ -11,14 +11,24 @@ Controlador::Controlador(Vista& _vista, BaseDatos& _BD, QObject *parent)
 	
 	connect(vista.get_lista_canciones(), &QListWidget::itemClicked, this, &Controlador::mostrar_cancion);
 	connect(vista.get_campo_cancion(), &QLineEdit::editingFinished, this, &Controlador::modificar_cancion);
-	connect(vista.get_campo_artista(), &QLineEdit::editingFinished, this, &Controlador::modificar_artista);
-	connect(vista.get_campo_album(), &QLineEdit::editingFinished, this, &Controlador::modificar_album);
 	connect(vista.get_campo_track(), &QLineEdit::editingFinished, this, &Controlador::modificar_cancion);
 	connect(vista.get_campo_anio(), &QLineEdit::editingFinished, this, &Controlador::modificar_cancion);
 	connect(vista.get_campo_genero(), &QLineEdit::editingFinished, this, &Controlador::modificar_cancion);
-        cargar_bd();
+
+	
+	connect(vista.get_campo_artista(), &QLineEdit::editingFinished, this, &Controlador::modificar_artista);
 	connect(vista.get_tipo_performer(), qOverload<int>(&QComboBox::currentIndexChanged), this, &Controlador::modificar_artista);
+	connect(vista.get_nombre_real(), &QLineEdit::editingFinished, this, &Controlador::modificar_artista);
+	connect(vista.get_nacimiento(), &QLineEdit::editingFinished, this, &Controlador::modificar_artista);
+	connect(vista.get_fallecimiento(), &QLineEdit::editingFinished, this, &Controlador::modificar_artista);
+	connect(vista.get_start_date(), &QLineEdit::editingFinished, this, &Controlador::modificar_artista);
+	connect(vista.get_end_date(), &QLineEdit::editingFinished, this, &Controlador::modificar_artista);
+	
+	connect(vista.get_campo_album(), &QLineEdit::editingFinished, this, &Controlador::modificar_album);
+	
 	connect(vista.get_integrante_agregado(), &QLineEdit::editingFinished, this, &Controlador::agregar_integrante);
+	
+        cargar_bd();
 }
 
 Controlador::~Controlador(){}
@@ -88,6 +98,31 @@ void Controlador::modificar_artista(){
 
 	    vista.get_lista_canciones() -> clear();
 	    cargar_bd();
+	}else if(campo == vista.get_nombre_real()){
+	    columna = "real_name";
+	    BD.modificar_persona(columna, nueva_info.toStdString(), cancion_actual.name_performer);
+
+	    cancion_actual.real_name = nueva_info.toStdString();
+	}else if(campo == vista.get_nacimiento()){
+	    columna = "birth_date";
+	    BD.modificar_persona(columna, nueva_info.toStdString(), cancion_actual.name_performer);
+
+	    cancion_actual.birth_date = nueva_info.toStdString();
+	}else if(campo == vista.get_fallecimiento()){
+	    columna = "death_date";
+	    BD.modificar_persona(columna, nueva_info.toStdString(), cancion_actual.name_performer);
+
+	    cancion_actual.death_date = nueva_info.toStdString();
+	}else if(campo == vista.get_start_date()){
+	    columna = "start_date";
+	    BD.modificar_grupo(columna, nueva_info.toStdString(), cancion_actual.name_performer);
+
+	    cancion_actual.start_date = nueva_info.toStdString();
+	}else if(campo == vista.get_end_date()){
+	    columna = "end_date";
+	    BD.modificar_grupo(columna, nueva_info.toStdString(), cancion_actual.name_performer);
+
+	    cancion_actual.end_date = nueva_info.toStdString();
 	}
     }else if(QComboBox *tipo = qobject_cast<QComboBox*>(modificado)){
 	if(tipo == vista.get_tipo_performer()){
@@ -96,13 +131,37 @@ void Controlador::modificar_artista(){
 
 	    BD.modificar_artista(columna, std::to_string(tipo_performer), path);
 	    cancion_actual.type_performer = tipo_performer;
-	    
-	    vista.get_lista_canciones() -> clear();
-	    cargar_bd();
-	}
-    }
 
-    if(columna.empty()) return;
+	    if(tipo_performer == 0){
+		BD.agregar_person(cancion_actual.name_performer);
+		BD.eliminar_grupo(cancion_actual.name_performer);
+		
+		cancion_actual.integrantes.clear();
+		cancion_actual.start_date = "";
+		cancion_actual.end_date = "";
+	    }else if(tipo_performer == 1){
+		BD.agregar_group(cancion_actual.name_performer);
+		BD.eliminar_persona(cancion_actual.name_performer);
+		
+		cancion_actual.real_name = "";
+		cancion_actual.birth_date = "";
+		cancion_actual.death_date = "";
+	    }else{
+		BD.eliminar_grupo(cancion_actual.name_performer);
+		BD.eliminar_persona(cancion_actual.name_performer);
+		
+		cancion_actual.real_name = "";
+		cancion_actual.birth_date = "";
+		cancion_actual.death_date = "";
+		cancion_actual.start_date = "";
+		cancion_actual.end_date = "";
+		cancion_actual.integrantes.clear();
+	    }
+	}
+	
+    }
+    
+    cargar_bd();
 
     modificar_info();
 }
@@ -152,6 +211,15 @@ void Controlador::minar(){
 
     cancion_actual = ultima_cancion;
     vista.mostrar_mensaje("Minado terminado");
+
+    QListWidget *lista = vista.get_lista_canciones();
+    int elementos = lista -> count();
+
+    if(elementos > 0){
+	QListWidgetItem *ultima = lista -> item(elementos -1);
+	lista -> setCurrentItem(ultima);
+	mostrar_cancion(ultima);
+    }
 }
 
 void Controlador::agregar_integrante(){
@@ -191,8 +259,13 @@ void Controlador::agregar_artista(){
 
 void Controlador::cargar_bd(){
     if(!BD.es_vacia()){
+	std::string path_cancion_seleccionada = cancion_actual.path_rola;
+
+	QListWidget *lista = vista.get_lista_canciones();
+	lista -> clear();
+	
 	std::vector<InfoCancion> canciones = BD.obtener_info_canciones();
-	InfoCancion ultima_cancion;
+        QListWidgetItem *cancion_seleccionada = nullptr;
 
 	for(InfoCancion &cancion : canciones){
 	    const char* home = std::getenv("HOME");
@@ -213,11 +286,26 @@ void Controlador::cargar_bd(){
 	    }
 	    vista.agregar_cancion(cancion);
 
-	    ultima_cancion = cancion;
-	}
+	    int elementos = lista -> count() - 1;
+	    QListWidgetItem *creado = lista -> item(elementos);
 
-	cancion_actual = ultima_cancion;
-	vista.mostrar_info(ultima_cancion);
+	    if(!path_cancion_seleccionada.empty() && cancion.path_rola == path_cancion_seleccionada){
+		cancion_seleccionada = creado;
+	    }
+	}
+	
+	int elementos = lista -> count();
+
+	if(elementos > 0){
+	    if(cancion_seleccionada){
+		lista -> setCurrentItem(cancion_seleccionada);
+		mostrar_cancion(cancion_seleccionada);
+	    }else{
+		QListWidgetItem *ultima = lista -> item(elementos -1);
+		lista -> setCurrentItem(ultima);
+		mostrar_cancion(ultima);
+	    }
+	}
     }
 }
 

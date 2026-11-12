@@ -146,61 +146,83 @@ void Vista::actualizar_info_cancion(const InfoCancion& info){
 
 QWidget* Vista::crear_info_cancion(){
     QWidget *box = new QWidget();
-    
-    imagen_album = new QLabel(box);
-    imagen_album -> setFixedSize(100, 100);
 
+    imagen_album = new QLabel(box);
+    imagen_album -> setFixedSize(180, 180);
+    
     QLabel *cancionLetrero = new QLabel("Cancion:", box);
-    cancion = new QLineEdit(box);
     cancionLetrero -> setObjectName("info-principal");
-    cancion -> setObjectName("entrada-texto"); 
-    
+    cancion = new QLineEdit(box);
+    cancion -> setObjectName("entrada-texto");
+
     QLabel *artistaLetrero = new QLabel("Artista:", box);
-    artista = new QLineEdit(box);
     artistaLetrero -> setObjectName("info-principal");
-    artista -> setObjectName("entrada-texto"); 
-    
+    artista = new QLineEdit(box);
+    artista -> setObjectName("entrada-texto");
+
     QLabel *albumLetrero = new QLabel("Album:", box);
-    album = new QLineEdit(box);
     albumLetrero -> setObjectName("info-principal"); 
-    album -> setObjectName("entrada-texto"); 
+    album = new QLineEdit(box);
+    album -> setObjectName("entrada-texto");
 
     QLabel *trackLetrero = new QLabel("No. de canción:", box);
-    track = new QLineEdit(box);
-    track -> setValidator(new QIntValidator(box));
-    track -> setObjectName("entrada-texto"); 
     trackLetrero -> setObjectName("info-principal");
+    track = new QLineEdit(box);
+    track -> setObjectName("entrada-texto");
 
     QLabel *anioLetrero = new QLabel("Año:", box);
-    anio = new QLineEdit(box);
-    anio -> setValidator(new QIntValidator(box));
-    anio -> setObjectName("entrada-texto"); 
     anioLetrero -> setObjectName("info-principal"); 
+    anio = new QLineEdit(box);
+    anio -> setObjectName("entrada-texto");
 
     QLabel *generoLetrero = new QLabel("Género:", box);
+    generoLetrero -> setObjectName("info-principal");
     genero = new QLineEdit(box);
-    generoLetrero -> setObjectName("info-principal"); 
-    genero -> setObjectName("entrada-texto");
+    genero -> setObjectName("entrada-texto"); 
+    
+    anio -> setValidator(new QIntValidator(box));
+    track -> setValidator(new QIntValidator(box));
 
     QLabel *tipoLetrero = new QLabel("Tipo de performer:", box);
-    tipoLetrero -> setObjectName("info-principal"); 
+    tipoLetrero -> setObjectName("info-principal");
     tipo_performer = new QComboBox(box);
-    tipo_performer -> setObjectName("tipo-performer");
-    tipo_performer -> addItem("Solista");
+    tipo_performer -> addItem("Solista/Persona");
     tipo_performer -> addItem("Grupo");
     tipo_performer -> addItem("Unknown");
+    tipo_performer -> setObjectName("tipo-performer");
+    tipo_performer -> setFocusPolicy(Qt::ClickFocus);
 
-    QLabel *integrantesLetrero = new QLabel("Integrantes: ", box);
-    integrantesLetrero -> setObjectName("info-principal");
+    nombre_real = new QLineEdit(box);
+    nombre_real -> setObjectName("entrada-texto"); 
+    nacimiento = new QLineEdit(box);
+    nacimiento -> setObjectName("entrada-texto"); 
+    fallecimiento = new QLineEdit(box);
+    fallecimiento -> setObjectName("entrada-texto");
+    
     integrantes = new QLabel(box);
     integrantes -> setObjectName("info-principal");
     agregar_integrante = new QLineEdit(box);
     agregar_integrante -> setObjectName("entrada-texto");
     agregar_integrante -> setEnabled(false);
+    start_date = new QLineEdit(box);
+    start_date -> setObjectName("entrada-texto");
+    end_date = new QLineEdit(box);
+    end_date -> setObjectName("entrada-texto");
 
-    QVBoxLayout *info = new QVBoxLayout(box);
+    info_canciones = new QStackedWidget(box);
+
+    solista = crear_info_solista();
+    grupo = crear_info_grupo();
+    unknown = crear_info_unknown();
+
+    info_canciones -> addWidget(solista);
+    info_canciones -> addWidget(grupo);
+    info_canciones -> addWidget(unknown);
+
+    QWidget *contenedor = new QWidget(box);
+    QVBoxLayout *info = new QVBoxLayout(contenedor);
     info -> setContentsMargins(20, 10, 20, 10);
-    info -> setSpacing(10);
+    info -> setSpacing(8);
     info -> addWidget(imagen_album);
     info -> addWidget(cancionLetrero);
     info -> addWidget(cancion);
@@ -216,31 +238,115 @@ QWidget* Vista::crear_info_cancion(){
     info -> addWidget(genero);
     info -> addWidget(tipoLetrero);
     info -> addWidget(tipo_performer);
-    info -> addWidget(integrantesLetrero);
-    info -> addWidget(integrantes);
-    info -> addWidget(agregar_integrante);
+    info -> addWidget(info_canciones);
     info -> setAlignment(imagen_album, Qt::AlignCenter);
+    
+    contenedor -> setLayout(info);
+    contenedor -> setObjectName("seccion");
 
-    box -> setLayout(info);
+    QScrollArea *desplazar = new QScrollArea(box);
+    desplazar -> setContentsMargins(0, 0, 0, 0);
+    desplazar -> setWidget(contenedor);
+    desplazar -> setWidgetResizable(true);
+    desplazar -> setObjectName("desplazamiento");
+
+    QVBoxLayout *principal = new QVBoxLayout(box);
+    principal -> setContentsMargins(0, 0, 0, 0);
+    principal -> addWidget(desplazar);
+    
+    box -> setLayout(principal);
     box -> setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
     box -> setObjectName("seccion");
 
     return box;
 }
 
-void Vista::mostrar_info(const InfoCancion& info){
-    cancion -> setText(QString::fromStdString(info.title_rola));
-    artista -> setText(QString::fromStdString(info.name_performer));
-    album -> setText(QString::fromStdString(info.name_album));
-    track -> setText(QString::number(info.track_rola));
-    anio -> setText(QString::number(info.year));
-    genero -> setText(QString::fromStdString(info.genre_rola));
-    tipo_performer -> blockSignals(true);
+QWidget* Vista::crear_info_solista(){
+    QWidget *box = new QWidget();
 
+    QLabel *nombre_realLetrero = new QLabel("Nombre real: ", box);
+    nombre_realLetrero -> setObjectName("info-principal");
+
+    QLabel *nacimientoLetrero = new QLabel("Nacimiento: ", box);
+    nacimientoLetrero -> setObjectName("info-principal");
+
+    QLabel *fallecimientoLetrero = new QLabel("Fallecimiento: ", box);
+    fallecimientoLetrero -> setObjectName("info-principal");
+
+    QVBoxLayout *info = new QVBoxLayout(box);
+    info -> setContentsMargins(0, 0, 0, 0);
+    info -> addWidget(nombre_realLetrero);
+    info -> addWidget(nombre_real);
+    info -> addWidget(nacimientoLetrero);
+    info -> addWidget(nacimiento);
+    info -> addWidget(fallecimientoLetrero);
+    info -> addWidget(fallecimiento);
+    info -> setSpacing(8);
+
+    box -> setLayout(info);
+    box -> setObjectName("seccion");
+
+    return box;
+}
+
+QWidget* Vista::crear_info_grupo(){
+    QWidget *box = new QWidget();
+
+    QLabel *integrantesLetrero = new QLabel("Integrantes: ", box);
+    integrantesLetrero -> setObjectName("info-principal");
+
+    QLabel *inicioLetrero = new QLabel("Debut: ", box);
+    inicioLetrero -> setObjectName("info-principal");
+
+    QLabel *finalizacionLetrero = new QLabel("Separación: ", box);
+    finalizacionLetrero -> setObjectName("info-principal");
+
+    QVBoxLayout *info = new QVBoxLayout(box);
+    info -> setContentsMargins(0, 0, 0, 0);
+    info -> setSpacing(8);
+    info -> addWidget(integrantesLetrero);
+    info -> addWidget(integrantes);
+    info -> addWidget(agregar_integrante);
+    info -> addWidget(inicioLetrero);
+    info -> addWidget(start_date);
+    info -> addWidget(finalizacionLetrero);
+    info -> addWidget(end_date);
+    info -> addStretch();
+
+    box -> setLayout(info);
+    box -> setObjectName("seccion");
+
+    return box;
+}
+
+QWidget* Vista::crear_info_unknown(){
+    QWidget *box = new QWidget();
+
+    QVBoxLayout *info = new QVBoxLayout(box);
+    info -> setContentsMargins(0, 0, 0, 0);
+    info -> setSpacing(8);
+
+    box -> setLayout(info);
+    box -> setObjectName("seccion");
+
+    return box;
+}
+
+void Vista::mostrar_info(const InfoCancion& info){
     int tipoP = info.type_performer;
+    info_canciones -> setCurrentIndex(tipoP);
+    tipo_performer -> blockSignals(true);
     tipo_performer -> setCurrentIndex(tipoP);
+    tipo_performer -> blockSignals(false);
     
-    if(tipoP == 1){
+    if(tipoP == 0){
+	nombre_real-> setText(QString::fromStdString(info.real_name));
+        nacimiento -> setText(QString::fromStdString(info.birth_date));
+        fallecimiento -> setText(QString::fromStdString(info.death_date));
+
+	integrantes -> setText("");
+	agregar_integrante -> clear();
+    }else if(tipoP == 1){
 	agregar_integrante -> setEnabled(true);
 
 	std::string integrantes_lista = "";
@@ -250,12 +356,27 @@ void Vista::mostrar_info(const InfoCancion& info){
 	}
 
 	integrantes -> setText(QString::fromStdString(integrantes_lista));
+	agregar_integrante -> setText("");
+	start_date -> setText(QString::fromStdString(info.start_date));
+	end_date -> setText(QString::fromStdString(info.end_date));
+
+	nombre_real -> clear();
+	nacimiento -> clear();
+	fallecimiento -> clear();
     }else{
         agregar_integrante -> setEnabled(false);
 	integrantes -> setText("");
+	nombre_real -> clear();
+	nacimiento -> clear();
+	fallecimiento -> clear();
     }
-
-    tipo_performer -> blockSignals(false);
+    
+    cancion -> setText(QString::fromStdString(info.title_rola));
+    artista -> setText(QString::fromStdString(info.name_performer));
+    album -> setText(QString::fromStdString(info.name_album));
+    track -> setText(QString::number(info.track_rola));
+    anio -> setText(QString::number(info.year));
+    genero -> setText(QString::fromStdString(info.genre_rola));
 
     QPixmap pixmap(QString::fromStdString(info.path_portada));
 

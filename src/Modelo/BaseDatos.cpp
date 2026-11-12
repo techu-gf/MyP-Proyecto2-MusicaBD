@@ -152,6 +152,48 @@ private:
 	return id;
     }
 
+    int persona_existe(std::string nombre_persona){
+	const char* busqueda = "SELECT id_person FROM persons WHERE stage_name = ?;";
+	sqlite3_stmt* stmt = nullptr;
+	int id = -1;
+
+	int preparacion = sqlite3_prepare_v2(BD, busqueda, -1, &stmt, NULL);
+
+	if(preparacion == SQLITE_OK){
+	    sqlite3_bind_text(stmt, 1, nombre_persona.c_str(), -1, SQLITE_TRANSIENT);
+
+	    int ejecucion = sqlite3_step(stmt);
+
+	    if(ejecucion == SQLITE_ROW){
+		id = sqlite3_column_int(stmt, 0);
+	    }
+	}
+
+	sqlite3_finalize(stmt);
+	return id;
+    }
+
+    int grupo_existe(std::string nombre_grupo){
+	const char* busqueda = "SELECT id_group FROM groups WHERE name = ?;";
+	sqlite3_stmt* stmt = nullptr;
+	int id = -1;
+
+	int preparacion = sqlite3_prepare_v2(BD, busqueda, -1, &stmt, NULL);
+
+	if(preparacion == SQLITE_OK){
+	    sqlite3_bind_text(stmt, 1, nombre_grupo.c_str(), -1, SQLITE_TRANSIENT);
+
+	    int ejecucion = sqlite3_step(stmt);
+
+	    if(ejecucion == SQLITE_ROW){
+		id = sqlite3_column_int(stmt, 0);
+	    }
+	}
+
+	sqlite3_finalize(stmt);
+	return id;
+    }
+
     int obtiene_tipo(int id_performer){
         const char* busqueda = "SELECT id_type FROM performers WHERE id_performer = ?;";
 	sqlite3_stmt* stmt = nullptr;
@@ -232,10 +274,12 @@ public:
 
     std::vector<InfoCancion> obtener_info_canciones(){
 	std::vector<InfoCancion> canciones;
-	std::string consulta = "SELECT rolas.title, performers.name, albums.name, rolas.track, rolas.year, rolas.genre, rolas.path, performers.id_type "
+	std::string consulta = "SELECT rolas.title, performers.name, albums.name, rolas.track, rolas.year, rolas.genre, rolas.path, performers.id_type, persons.real_name, persons.birth_date, persons.death_date, groups.start_date, groups.end_date "
 	    "FROM rolas "
 	    "LEFT JOIN performers ON rolas.id_performer = performers.id_performer "
-	    "LEFT JOIN albums ON rolas.id_album = albums.id_album;";
+	    "LEFT JOIN albums ON rolas.id_album = albums.id_album "
+	    "LEFT JOIN persons ON performers.name = persons.stage_name "
+	    "LEFT JOIN groups ON performers.name = groups.name;";
 	sqlite3_stmt* stmt = nullptr;
 	
 	int preparacion = sqlite3_prepare_v2(BD, consulta.c_str(), -1, &stmt, NULL);
@@ -253,6 +297,17 @@ public:
 		cancion.type_performer = sqlite3_column_int(stmt, 7);
 		
 		cancion.integrantes = obtener_integrantes(cancion.name_performer);
+
+	        auto nombre_real = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 8));
+		cancion.real_name = nombre_real ? nombre_real : "";
+		auto nacimiento = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 9));
+		cancion.birth_date = nacimiento ? nacimiento : "";
+		auto fallecimiento = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 10));
+		cancion.death_date = fallecimiento ? fallecimiento : "";
+		auto inicio = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 11));
+		cancion.start_date = inicio ? inicio : "";
+		auto finalizacion = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 12));
+		cancion.end_date = finalizacion ? finalizacion : "";
 
 		canciones.push_back(cancion);
 	    }
@@ -343,6 +398,58 @@ public:
 	sqlite3_finalize(stmt);
     }
 
+    void modificar_persona(std::string campo, std::string nuevo_valor, std::string nombre){
+	std::string modificacion = "UPDATE persons SET " + campo +
+	    " = ? WHERE stage_name = ?;";
+	sqlite3_stmt* stmt = nullptr;
+
+	int preparacion = sqlite3_prepare_v2(BD, modificacion.c_str(), -1, &stmt, NULL);
+
+	if(preparacion != SQLITE_OK){
+	    sqlite3_finalize(stmt);
+	    return;
+	}
+	
+	sqlite3_bind_text(stmt, 1, nuevo_valor.c_str(), -1, SQLITE_TRANSIENT);
+	sqlite3_bind_text(stmt, 2, nombre.c_str(), -1, SQLITE_TRANSIENT);
+	    
+	int ejecucion = sqlite3_step(stmt);
+
+	if(ejecucion == SQLITE_DONE){
+	    std::cout << "Se actualizó con éxito el campo " << campo << " de persons.\n";
+	}else{
+	    std::cout << "No se pudo actualizar el campo " << campo << " de persons.\n";
+	}
+	
+	sqlite3_finalize(stmt);
+    }
+
+    void modificar_grupo(std::string campo, std::string nuevo_valor, std::string nombre){
+	std::string modificacion = "UPDATE groups SET " + campo +
+	    " = ? WHERE name = ?;";
+	sqlite3_stmt* stmt = nullptr;
+
+	int preparacion = sqlite3_prepare_v2(BD, modificacion.c_str(), -1, &stmt, NULL);
+
+	if(preparacion != SQLITE_OK){
+	    sqlite3_finalize(stmt);
+	    return;
+	}
+	
+	sqlite3_bind_text(stmt, 1, nuevo_valor.c_str(), -1, SQLITE_TRANSIENT);
+	sqlite3_bind_text(stmt, 2, nombre.c_str(), -1, SQLITE_TRANSIENT);
+	    
+	int ejecucion = sqlite3_step(stmt);
+
+	if(ejecucion == SQLITE_DONE){
+	    std::cout << "Se actualizó con éxito el campo " << campo << " de groups.\n";
+	}else{
+	    std::cout << "No se pudo actualizar el campo " << campo << " de groups.\n";
+	}
+	
+	sqlite3_finalize(stmt);
+    }
+
     bool agregar_cancion(const InfoCancion& info){
 	if(ya_existe_cancion(info.path_rola)){
 	    std::cout << "\n\nNo se agregó " << info.title_rola << " ya que ya está en la BD.\n\n";
@@ -428,26 +535,15 @@ public:
     }
 
     void agregar_integrante(std::string nombre_artista, std::string nombre_grupo){
-	int id_group = artista_existe(nombre_grupo);
-	int id_person = artista_existe(nombre_artista);
+	int id_group = grupo_existe(nombre_grupo);
+	int id_person = persona_existe(nombre_artista);
 
 	if(id_group == -1){
 	    throw ErrorBD("No existe el grupo " + nombre_grupo);
 	}
 
 	if(id_person == -1){
-	    throw ErrorBD("No existe el artista " + nombre_artista);
-	}
-	
-	int tipo_group = obtiene_tipo(id_group);
-	int tipo_person = obtiene_tipo(id_person);
-
-	if(tipo_group != 1){
-	    throw ErrorBD(nombre_grupo + " no es un grupo.");
-	}
-
-	if(tipo_person != 0){
-	    throw ErrorBD(nombre_artista + " no es una persona.");
+	    throw ErrorBD("No existe el artista " + nombre_artista + " o no es persona");
 	}
 
 	const char* insert = "INSERT INTO in_group (id_person, id_group) VALUES (?, ?);";
@@ -472,14 +568,14 @@ public:
     }
 
     std::vector<std::string> obtener_integrantes(std::string nombre_grupo){
-	int id_group = determina_id_performer(nombre_grupo);
+	int id_group = grupo_existe(nombre_grupo);
 
 	if(id_group == -1) return {};
 
 	std::vector<std::string> integrantes;
-        std::string consulta = "SELECT performers.name "
+        std::string consulta = "SELECT persons.stage_name "
 	    "FROM in_group "
-	    "LEFT JOIN performers ON in_group.id_person = performers.id_performer "
+	    "LEFT JOIN persons ON in_group.id_person = persons.id_person "
 	    "WHERE in_group.id_group = ?;";
 	sqlite3_stmt* stmt = nullptr;
 
@@ -495,5 +591,95 @@ public:
 	
 	sqlite3_finalize(stmt);
 	return integrantes;
+    }
+
+    void agregar_person(std::string nombre_person){
+	if(persona_existe(nombre_person) != -1){
+	    return;
+	}
+	
+	const char* insert = "INSERT INTO persons (stage_name) VALUES (?);";
+	sqlite3_stmt* stmt = nullptr;
+	
+	int preparacion = sqlite3_prepare_v2(BD, insert, -1, &stmt, NULL);
+
+	if(preparacion == SQLITE_OK){
+	    sqlite3_bind_text(stmt, 1, nombre_person.c_str(), -1, SQLITE_TRANSIENT);
+
+	    int ejecucion = sqlite3_step(stmt);
+
+	    if(ejecucion == SQLITE_DONE){
+		std::cout << "Se agregó a la persona " << nombre_person << "\n";
+	    }else{
+	        std::cout << "No se pudo agregar a la persona " << nombre_person << "\n";
+	    }
+	}
+	
+	sqlite3_finalize(stmt);
+    }
+
+    void agregar_group(std::string nombre_group){
+	if(grupo_existe(nombre_group) != -1){
+	    return;
+	}
+	
+	const char* insert = "INSERT INTO groups (name) VALUES (?);";
+	sqlite3_stmt* stmt = nullptr;
+	
+	int preparacion = sqlite3_prepare_v2(BD, insert, -1, &stmt, NULL);
+
+	if(preparacion == SQLITE_OK){
+	    sqlite3_bind_text(stmt, 1, nombre_group.c_str(), -1, SQLITE_TRANSIENT);
+
+	    int ejecucion = sqlite3_step(stmt);
+
+	    if(ejecucion == SQLITE_DONE){
+		std::cout << "Se agregó al grupo " << nombre_group << "\n";
+	    }else{
+	        std::cout << "No se pudo agregar al grupo " << nombre_group << "\n";
+	    }
+	}
+	
+	sqlite3_finalize(stmt);
+    }
+
+    void eliminar_grupo(std::string nombre){
+	std::string eliminar_integrantes = "DELETE FROM in_group WHERE id_group IN (SELECT id_group FROM groups WHERE name = ?);";
+	sqlite3_stmt* stmt = nullptr;
+
+	int preparacion = sqlite3_prepare_v2(BD, eliminar_integrantes.c_str(), -1, &stmt, NULL);
+
+	if(preparacion == SQLITE_OK){
+	    sqlite3_bind_text(stmt, 1, nombre.c_str(), -1, SQLITE_TRANSIENT);
+	    sqlite3_step(stmt);
+	}
+	
+	sqlite3_finalize(stmt);
+
+	std::string eliminar_grupo = "DELETE FROM groups WHERE name = ?;";
+	sqlite3_stmt* stmt2 = nullptr;
+
+	int preparacion2 = sqlite3_prepare_v2(BD, eliminar_grupo.c_str(), -1, &stmt2, NULL);
+
+	if(preparacion2 == SQLITE_OK){
+	    sqlite3_bind_text(stmt2, 1, nombre.c_str(), -1, SQLITE_TRANSIENT);
+	    sqlite3_step(stmt2);
+	}
+	
+	sqlite3_finalize(stmt2);
+    }
+
+    void eliminar_persona(std::string nombre){
+	std::string eliminar = "DELETE FROM persons WHERE stage_name = ?;";
+	sqlite3_stmt* stmt = nullptr;
+
+	int preparacion = sqlite3_prepare_v2(BD, eliminar.c_str(), -1, &stmt, NULL);
+
+	if(preparacion == SQLITE_OK){
+	    sqlite3_bind_text(stmt, 1, nombre.c_str(), -1, SQLITE_TRANSIENT);
+	    sqlite3_step(stmt);
+	}
+	
+	sqlite3_finalize(stmt);
     }
 };

@@ -67,3 +67,11 @@ QComboBox#tipo-performer{
     background: #B0B0B0;
     padding: 6px;
 }
+
+QScrollArea#desplazamiento{
+    border: none;
+    border-radius: 8px;
+    background-color: #444444;
+    margin: 0px;
+    padding: 0px;
+}

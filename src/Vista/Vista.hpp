@@ -8,6 +8,7 @@ class QPushButton;
 class QLineEdit;
 class QLabel;
 class QComboBox;
+class QStackedWidget;
 
 class Vista : public QWidget{
     Q_OBJECT
@@ -62,12 +63,35 @@ public:
 	return agregar_integrante;
     }
 
+    QLineEdit* get_nombre_real() const{
+	return nombre_real;
+    }
+
+    QLineEdit* get_nacimiento() const{
+	return nacimiento;
+    }
+
+    QLineEdit* get_fallecimiento() const{
+	return fallecimiento;
+    }
+
+    QLineEdit* get_start_date() const{
+	return start_date;
+    }
+
+    QLineEdit* get_end_date() const{
+	return end_date;
+    }
+
 private:
     
     QWidget* crear_barra_superior();
     QWidget* crear_lista_canciones();
     QWidget* crear_cancion(const InfoCancion& info);
     QWidget* crear_info_cancion();
+    QWidget* crear_info_solista();
+    QWidget* crear_info_grupo();
+    QWidget* crear_info_unknown();
 
     QPushButton* minar;
     QListWidget* lista_canciones;
@@ -79,8 +103,20 @@ private:
     QLineEdit *anio;
     QLineEdit *genero;
     QComboBox *tipo_performer;
+
+    QLineEdit *nombre_real;
+    QLineEdit *nacimiento;
+    QLineEdit *fallecimiento;
+    
     QLabel *integrantes;
     QLineEdit *agregar_integrante;
+    QLineEdit *start_date;
+    QLineEdit *end_date;
+    
+    QStackedWidget *info_canciones;
+    QWidget *solista;
+    QWidget *grupo;
+    QWidget *unknown;
     
 };
 
