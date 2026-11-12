@@ -58,6 +58,10 @@ public:
 	return tipo_performer;
     }
 
+    QLineEdit* get_integrante_agregado() const{
+	return agregar_integrante;
+    }
+
 private:
     
     QWidget* crear_barra_superior();
@@ -75,7 +79,8 @@ private:
     QLineEdit *anio;
     QLineEdit *genero;
     QComboBox *tipo_performer;
-    QLineEdit *integrantes;
+    QLabel *integrantes;
+    QLineEdit *agregar_integrante;
     
 };
 

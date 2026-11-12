@@ -192,9 +192,11 @@ QWidget* Vista::crear_info_cancion(){
 
     QLabel *integrantesLetrero = new QLabel("Integrantes: ", box);
     integrantesLetrero -> setObjectName("info-principal");
-    integrantes = new QLineEdit(box);
-    integrantes -> setObjectName("entrada-texto");
-    integrantes -> setEnabled(false);
+    integrantes = new QLabel(box);
+    integrantes -> setObjectName("info-principal");
+    agregar_integrante = new QLineEdit(box);
+    agregar_integrante -> setObjectName("entrada-texto");
+    agregar_integrante -> setEnabled(false);
 
     QVBoxLayout *info = new QVBoxLayout(box);
     info -> setContentsMargins(20, 10, 20, 10);
@@ -216,6 +218,7 @@ QWidget* Vista::crear_info_cancion(){
     info -> addWidget(tipo_performer);
     info -> addWidget(integrantesLetrero);
     info -> addWidget(integrantes);
+    info -> addWidget(agregar_integrante);
     info -> setAlignment(imagen_album, Qt::AlignCenter);
 
     box -> setLayout(info);
@@ -238,9 +241,18 @@ void Vista::mostrar_info(const InfoCancion& info){
     tipo_performer -> setCurrentIndex(tipoP);
     
     if(tipoP == 1){
-	integrantes -> setEnabled(true);
+	agregar_integrante -> setEnabled(true);
+
+	std::string integrantes_lista = "";
+
+	for(std::string nombre : info.integrantes){
+	    integrantes_lista.append(nombre + " | ");
+	}
+
+	integrantes -> setText(QString::fromStdString(integrantes_lista));
     }else{
-	integrantes -> setEnabled(false);
+        agregar_integrante -> setEnabled(false);
+	integrantes -> setText("");
     }
 
     tipo_performer -> blockSignals(false);

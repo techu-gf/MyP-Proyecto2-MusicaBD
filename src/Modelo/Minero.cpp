@@ -2,7 +2,6 @@
 #include <filesystem>
 #include <stack>
 #include "Lector.cpp"
-#include "ErrorMinado.cpp"
 #include "BaseDatos.cpp"
 
 namespace fs = std::filesystem;
@@ -24,17 +23,13 @@ private:
   InfoCancion guardar_info_cancion(const fs::path& ruta_archivo){
       std::string extension = ruta_archivo.extension().string();
 
-      try{
-	  if(extension == ".mp3" || extension == ".MP3"){
-	      InfoCancion info = Lector::obtener_info(ruta_archivo);
-	      bool agregada = BD.agregar_cancion(info);
+      if(extension == ".mp3" || extension == ".MP3"){
+	  InfoCancion info = Lector::obtener_info(ruta_archivo);
+	  bool agregada = BD.agregar_cancion(info);
 
-	      if(agregada){
-		  return info;
-	      }
+	  if(agregada){
+	      return info;
 	  }
-      }catch(const ErrorMinado& e){
-	  std::cerr << e.what() << "\n";
       }
 
       return InfoCancion{};

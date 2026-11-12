@@ -6,6 +6,7 @@
 #include <sstream>
 #include <cstdlib>
 #include "InfoCancion.hpp"
+#include "ErrorBD.hpp"
 
 class BaseDatos{
 
@@ -125,7 +126,51 @@ private:
 	    }
 	}
 
+	sqlite3_finalize(stmt);
+
 	return false;
+    }
+
+    int artista_existe(std::string nombre_artista){
+	const char* busqueda = "SELECT id_performer FROM performers WHERE name = ?;";
+	sqlite3_stmt* stmt = nullptr;
+	int id = -1;
+
+	int preparacion = sqlite3_prepare_v2(BD, busqueda, -1, &stmt, NULL);
+
+	if(preparacion == SQLITE_OK){
+	    sqlite3_bind_text(stmt, 1, nombre_artista.c_str(), -1, SQLITE_TRANSIENT);
+
+	    int ejecucion = sqlite3_step(stmt);
+
+	    if(ejecucion == SQLITE_ROW){
+		id = sqlite3_column_int(stmt, 0);
+	    }
+	}
+
+	sqlite3_finalize(stmt);
+	return id;
+    }
+
+    int obtiene_tipo(int id_performer){
+        const char* busqueda = "SELECT id_type FROM performers WHERE id_performer = ?;";
+	sqlite3_stmt* stmt = nullptr;
+        int id_type = 2;
+
+	int preparacion = sqlite3_prepare_v2(BD, busqueda, -1, &stmt, NULL);
+
+	if(preparacion == SQLITE_OK){
+	    sqlite3_bind_int(stmt, 1, id_performer);
+
+	    int ejecucion = sqlite3_step(stmt);
+
+	    if(ejecucion == SQLITE_ROW){
+	        id_type = sqlite3_column_int(stmt, 0);
+	    }
+	}
+
+	sqlite3_finalize(stmt);
+	return id_type;
     }
 
 public:
@@ -206,6 +251,8 @@ public:
 		cancion.genre_rola = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5));
 		cancion.path_rola = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6));
 		cancion.type_performer = sqlite3_column_int(stmt, 7);
+		
+		cancion.integrantes = obtener_integrantes(cancion.name_performer);
 
 		canciones.push_back(cancion);
 	    }
@@ -380,7 +427,73 @@ public:
 	sqlite3_finalize(stmt);
     }
 
-    void agregar_integrante(){
+    void agregar_integrante(std::string nombre_artista, std::string nombre_grupo){
+	int id_group = artista_existe(nombre_grupo);
+	int id_person = artista_existe(nombre_artista);
+
+	if(id_group == -1){
+	    throw ErrorBD("No existe el grupo " + nombre_grupo);
+	}
+
+	if(id_person == -1){
+	    throw ErrorBD("No existe el artista " + nombre_artista);
+	}
 	
+	int tipo_group = obtiene_tipo(id_group);
+	int tipo_person = obtiene_tipo(id_person);
+
+	if(tipo_group != 1){
+	    throw ErrorBD(nombre_grupo + " no es un grupo.");
+	}
+
+	if(tipo_person != 0){
+	    throw ErrorBD(nombre_artista + " no es una persona.");
+	}
+
+	const char* insert = "INSERT INTO in_group (id_person, id_group) VALUES (?, ?);";
+	sqlite3_stmt* stmt = nullptr;
+	
+	int preparacion = sqlite3_prepare_v2(BD, insert, -1, &stmt, NULL);
+
+	if(preparacion == SQLITE_OK){
+	    sqlite3_bind_int(stmt, 1, id_person);
+	    sqlite3_bind_int(stmt, 2, id_group);
+
+	    int ejecucion = sqlite3_step(stmt);
+
+	    if(ejecucion == SQLITE_DONE){
+		std::cout << "Se agregó al integrante " << nombre_artista << " a " << nombre_grupo << "\n";
+	    }else{
+	        std::cout << "No se pudo agregar al integrante " << nombre_artista << " a " << nombre_grupo << "\n";
+	    }
+	}
+	
+	sqlite3_finalize(stmt);
+    }
+
+    std::vector<std::string> obtener_integrantes(std::string nombre_grupo){
+	int id_group = determina_id_performer(nombre_grupo);
+
+	if(id_group == -1) return {};
+
+	std::vector<std::string> integrantes;
+        std::string consulta = "SELECT performers.name "
+	    "FROM in_group "
+	    "LEFT JOIN performers ON in_group.id_person = performers.id_performer "
+	    "WHERE in_group.id_group = ?;";
+	sqlite3_stmt* stmt = nullptr;
+
+	int preparacion = sqlite3_prepare_v2(BD, consulta.c_str(), -1, &stmt, NULL);
+
+	if(preparacion == SQLITE_OK){
+	    sqlite3_bind_int(stmt, 1, id_group);
+
+	    while(sqlite3_step(stmt) == SQLITE_ROW){
+		integrantes.push_back(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+	    }
+	}
+	
+	sqlite3_finalize(stmt);
+	return integrantes;
     }
 };
