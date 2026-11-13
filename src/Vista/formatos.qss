@@ -75,3 +75,22 @@ QScrollArea#desplazamiento{
     margin: 0px;
     padding: 0px;
 }
+
+QWidget#seccion-formulario{
+    background-color: #333333;
+    border-radius: 8px;
+    margin: 0px;
+    padding: 0px;
+}
+
+QPushButton#boton-formulario{
+    border: none;
+    background-color:#B0B0B0;
+    border-radius: 8px;
+    padding: 6px;
+    font-size: 18px;
+}
+
+QPushButton#boton-formulario:pressed{
+    background-color: #8C8C8C;
+}

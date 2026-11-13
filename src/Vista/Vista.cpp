@@ -30,7 +30,7 @@ QWidget* Vista::crear_barra_superior(){
     QWidget *box = new QWidget();
 
     minar = new QPushButton(box);
-    QPushButton* agregar_artista = new QPushButton(box);
+    agregar_artista = new QPushButton(box);
     QLineEdit* consulta = new QLineEdit(box);
     
     minar -> setIcon(QIcon("src/sources/iconos/minar.png"));
@@ -396,4 +396,133 @@ void Vista::mostrar_mensaje(const std::string& mensaje){
     QPoint punto(this -> width()/2, this -> height() - 140);
 
     QToolTip::showText(punto, msg, this, QRect(), 5000);
+}
+
+void Vista::formulario_agregar_artista(){
+    if(!ventana_agregar_artista){
+	ventana_agregar_artista = new QWidget(this, Qt::Window);
+	ventana_agregar_artista -> setWindowTitle("Agregar artista");
+	ventana_agregar_artista -> resize (600, 350);
+	ventana_agregar_artista -> setAttribute(Qt::WA_DeleteOnClose);
+
+	QLabel *artistaLetrero = new QLabel("Nombre del artista:", ventana_agregar_artista);
+	artistaLetrero -> setObjectName("info-principal");
+        name = new QLineEdit(ventana_agregar_artista);
+	name -> setObjectName("entrada-texto");
+
+	QLabel *tipoLetrero = new QLabel("Tipo de performer:", ventana_agregar_artista);
+	tipoLetrero -> setObjectName("info-principal");
+	tipo_performer_f = new QComboBox(ventana_agregar_artista);
+	tipo_performer_f -> addItem("Solista/Persona");
+	tipo_performer_f -> addItem("Grupo");
+	tipo_performer_f -> setObjectName("tipo-performer");
+	tipo_performer_f -> setFocusPolicy(Qt::ClickFocus);
+
+	nombre_real_f = new QLineEdit(ventana_agregar_artista);
+	nombre_real_f -> setObjectName("entrada-texto"); 
+	fecha_nacim = new QLineEdit(ventana_agregar_artista);
+        fecha_nacim -> setObjectName("entrada-texto"); 
+        fecha_fallec = new QLineEdit(ventana_agregar_artista);
+        fecha_fallec -> setObjectName("entrada-texto");
+
+        fecha_inicio = new QLineEdit(ventana_agregar_artista);
+        fecha_inicio -> setObjectName("entrada-texto");
+        fecha_fin = new QLineEdit(ventana_agregar_artista);
+        fecha_fin -> setObjectName("entrada-texto");
+	
+	formulario = new QStackedWidget(ventana_agregar_artista);
+
+	QWidget *solista = formulario_persona();
+	QWidget *grupo = formulario_grupo();
+
+        formulario -> addWidget(solista);
+        formulario -> addWidget(grupo);
+
+	enviar_formulario = new QPushButton("Enviar");
+	enviar_formulario -> setIconSize(QSize(33, 33));
+	enviar_formulario -> setObjectName("boton-formulario");
+
+	QVBoxLayout *contenedor = new QVBoxLayout(ventana_agregar_artista);
+	contenedor -> setContentsMargins(20, 10, 20, 10);
+	contenedor -> setSpacing(10);
+	contenedor -> addWidget(artistaLetrero);
+	contenedor -> addWidget(name);
+	contenedor -> addWidget(tipoLetrero);
+	contenedor -> addWidget(tipo_performer_f);
+	contenedor -> addWidget(formulario);
+	contenedor -> addWidget(enviar_formulario);
+	contenedor -> setAlignment(enviar_formulario, Qt::AlignCenter);
+    
+	ventana_agregar_artista -> setLayout(contenedor);
+	ventana_agregar_artista -> setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
+	ventana_agregar_artista -> setAttribute(Qt::WA_StyledBackground, true);
+	ventana_agregar_artista -> setObjectName("seccion-formulario");
+
+	connect(tipo_performer_f, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &Vista::mostrar_formulario);
+	connect(ventana_agregar_artista, &QObject::destroyed, [this](){
+	    ventana_agregar_artista = nullptr;
+	});
+    }
+
+    ventana_agregar_artista -> show();
+    ventana_agregar_artista -> raise();
+    ventana_agregar_artista -> activateWindow();
+}
+
+QWidget* Vista::formulario_persona(){
+    QWidget *box = new QWidget();
+
+    QLabel *nombre_realLetrero = new QLabel("Nombre real: ", box);
+    nombre_realLetrero -> setObjectName("info-principal");
+
+    QLabel *nacimientoLetrero = new QLabel("Nacimiento: ", box);
+    nacimientoLetrero -> setObjectName("info-principal");
+
+    QLabel *fallecimientoLetrero = new QLabel("Fallecimiento: ", box);
+    fallecimientoLetrero -> setObjectName("info-principal");
+
+    QVBoxLayout *info = new QVBoxLayout(box);
+    info -> setContentsMargins(0, 0, 0, 0);
+    info -> addWidget(nombre_realLetrero);
+    info -> addWidget(nombre_real_f);
+    info -> addWidget(nacimientoLetrero);
+    info -> addWidget(fecha_nacim);
+    info -> addWidget(fallecimientoLetrero);
+    info -> addWidget(fecha_fallec);
+    info -> setSpacing(10);
+
+    box -> setLayout(info);
+    box -> setObjectName("seccion-formulario");
+
+    return box;
+}
+
+QWidget* Vista::formulario_grupo(){
+    QWidget *box = new QWidget();
+    
+    QLabel *inicioLetrero = new QLabel("Debut: ", box);
+    inicioLetrero -> setObjectName("info-principal");
+
+    QLabel *finalizacionLetrero = new QLabel("Separación: ", box);
+    finalizacionLetrero -> setObjectName("info-principal");
+
+    QVBoxLayout *info = new QVBoxLayout(box);
+    info -> setContentsMargins(0, 0, 0, 0);
+    info -> setSpacing(10);
+    info -> addWidget(inicioLetrero);
+    info -> addWidget(fecha_inicio);
+    info -> addWidget(finalizacionLetrero);
+    info -> addWidget(fecha_fin);
+    info -> addStretch();
+
+    box -> setLayout(info);
+    box -> setObjectName("seccion-formulario");
+
+    return box;
+}
+
+void Vista::mostrar_formulario(){
+    int tipoP = tipo_performer_f -> currentIndex();
+
+    formulario -> setCurrentIndex(tipoP);
 }

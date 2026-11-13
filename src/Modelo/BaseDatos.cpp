@@ -131,27 +131,6 @@ private:
 	return false;
     }
 
-    int artista_existe(std::string nombre_artista){
-	const char* busqueda = "SELECT id_performer FROM performers WHERE name = ?;";
-	sqlite3_stmt* stmt = nullptr;
-	int id = -1;
-
-	int preparacion = sqlite3_prepare_v2(BD, busqueda, -1, &stmt, NULL);
-
-	if(preparacion == SQLITE_OK){
-	    sqlite3_bind_text(stmt, 1, nombre_artista.c_str(), -1, SQLITE_TRANSIENT);
-
-	    int ejecucion = sqlite3_step(stmt);
-
-	    if(ejecucion == SQLITE_ROW){
-		id = sqlite3_column_int(stmt, 0);
-	    }
-	}
-
-	sqlite3_finalize(stmt);
-	return id;
-    }
-
     int persona_existe(std::string nombre_persona){
 	const char* busqueda = "SELECT id_person FROM persons WHERE stage_name = ?;";
 	sqlite3_stmt* stmt = nullptr;
@@ -681,5 +660,26 @@ public:
 	}
 	
 	sqlite3_finalize(stmt);
+    }
+
+    int artista_existe(std::string nombre_artista){
+	const char* busqueda = "SELECT id_performer FROM performers WHERE name = ?;";
+	sqlite3_stmt* stmt = nullptr;
+	int id = -1;
+
+	int preparacion = sqlite3_prepare_v2(BD, busqueda, -1, &stmt, NULL);
+
+	if(preparacion == SQLITE_OK){
+	    sqlite3_bind_text(stmt, 1, nombre_artista.c_str(), -1, SQLITE_TRANSIENT);
+
+	    int ejecucion = sqlite3_step(stmt);
+
+	    if(ejecucion == SQLITE_ROW){
+		id = sqlite3_column_int(stmt, 0);
+	    }
+	}
+
+	sqlite3_finalize(stmt);
+	return id;
     }
 };

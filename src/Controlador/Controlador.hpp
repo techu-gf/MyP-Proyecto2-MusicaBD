@@ -28,6 +28,7 @@ private slots:
     void agregar_artista();
     void cargar_bd();
     void mostrar_cancion(QListWidgetItem *item);
+    void abrir_formulario_nuevo_artista();
 };
 
 #endif

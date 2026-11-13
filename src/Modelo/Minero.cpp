@@ -20,19 +20,13 @@ private:
    * @brief Obtiene la información del archivo.
    * @param ruta_archivo Ruta del archivo del que se obtendrá la información
    */
-  InfoCancion guardar_info_cancion(const fs::path& ruta_archivo){
+  void guardar_info_cancion(const fs::path& ruta_archivo){
       std::string extension = ruta_archivo.extension().string();
 
       if(extension == ".mp3" || extension == ".MP3"){
 	  InfoCancion info = Lector::obtener_info(ruta_archivo);
-	  bool agregada = BD.agregar_cancion(info);
-
-	  if(agregada){
-	      return info;
-	  }
+	  BD.agregar_cancion(info);
       }
-
-      return InfoCancion{};
   }
 
 public:
@@ -46,12 +40,11 @@ public:
   /**
    * @brief Comienza a minar.
    */
-    std::vector<InfoCancion> minar(){
+    void minar(){
 	if(!fs::exists(ruta_directorio) || !fs::is_directory(ruta_directorio)){
 	    std::cout << "La ruta no existe o no es un directorio\n";
 	}
 
-	std::vector<InfoCancion> canciones;
 	std::stack<fs::path> directorios;
 	directorios.push(ruta_directorio);
 
@@ -62,11 +55,7 @@ public:
 	    try{
 		for(const auto& entry : fs::directory_iterator(actual)){
 		    if(fs::is_regular_file(entry.status())){
-		        InfoCancion cancion = guardar_info_cancion(entry.path());
-
-			if(!cancion.title_rola.empty()){
-			    canciones.push_back(cancion);
-			}
+			guardar_info_cancion(entry.path());
 		    }else if(fs::is_directory(entry.status())){
 			directorios.push(entry.path());
 		    }
@@ -75,8 +64,6 @@ public:
 		std::cerr << "No se pudo acceder a la ruta " << actual << "\n";
 	    }
 	}
-
-	return canciones;
     }
   
 };

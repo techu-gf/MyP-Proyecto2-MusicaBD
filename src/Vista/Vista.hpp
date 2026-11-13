@@ -21,11 +21,21 @@ public:
     QPushButton* get_boton_minar() const{
 	return minar;
     }
+
+    QPushButton* get_boton_agregar_artista() const{
+	return agregar_artista;
+    }
+
+    QPushButton* get_enviar_formulario() const{
+	return enviar_formulario;
+    }
     
     void mostrar_mensaje(const std::string& mensaje);
     void agregar_cancion(const InfoCancion& info);
     void mostrar_info(const InfoCancion& info);
     void actualizar_info_cancion(const InfoCancion& info);
+    void formulario_agregar_artista();
+    void mostrar_formulario();
 
     QListWidget* get_lista_canciones() const{
 	return lista_canciones;
@@ -83,6 +93,34 @@ public:
 	return end_date;
     }
 
+    QComboBox* get_tipo_performer_form() const{
+	return tipo_performer_f;
+    }
+
+    QLineEdit* get_nombre_form() const{
+	return name;
+    }
+
+    QLineEdit* get_nombre_real_form() const{
+	return nombre_real_f;
+    }
+    
+    QLineEdit* get_nacimiento_form() const{
+	return fecha_nacim;
+    }
+
+    QLineEdit* get_fallecimiento_form() const{
+	return fecha_fallec;
+    }
+
+    QLineEdit* get_fecha_inicio_form() const{
+	return fecha_inicio;
+    }
+
+    QLineEdit* get_fecha_fin_form() const{
+	return fecha_fin;
+    }
+
 private:
     
     QWidget* crear_barra_superior();
@@ -94,6 +132,8 @@ private:
     QWidget* crear_info_unknown();
 
     QPushButton* minar;
+    QPushButton* agregar_artista;
+    
     QListWidget* lista_canciones;
     QLabel *imagen_album;
     QLineEdit *cancion;
@@ -117,6 +157,21 @@ private:
     QWidget *solista;
     QWidget *grupo;
     QWidget *unknown;
+
+    QWidget *ventana_agregar_artista = nullptr;
+
+    QWidget* formulario_persona();
+    QWidget* formulario_grupo();
+
+    QStackedWidget *formulario;
+    QLineEdit *name;
+    QComboBox *tipo_performer_f;
+    QLineEdit *nombre_real_f;
+    QLineEdit *fecha_nacim;
+    QLineEdit *fecha_fallec;
+    QLineEdit *fecha_inicio;
+    QLineEdit *fecha_fin;
+    QPushButton *enviar_formulario;
     
 };
 

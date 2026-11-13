@@ -8,6 +8,7 @@ Controlador::Controlador(Vista& _vista, BaseDatos& _BD, QObject *parent)
 	: QObject(parent), vista(_vista), BD(_BD){
 
 	connect(vista.get_boton_minar(), &QPushButton::clicked, this, &Controlador::minar);
+	connect(vista.get_boton_agregar_artista(), &QPushButton::clicked, this, &Controlador::abrir_formulario_nuevo_artista);
 	
 	connect(vista.get_lista_canciones(), &QListWidget::itemClicked, this, &Controlador::mostrar_cancion);
 	connect(vista.get_campo_cancion(), &QLineEdit::editingFinished, this, &Controlador::modificar_cancion);
@@ -192,34 +193,12 @@ void Controlador::minar(){
     try{
 	std::string ruta = "Musica/";
 	Minero minero(ruta, BD);
-        canciones = minero.minar();
+        minero.minar();
     }catch(const std::exception& e){
 	std::cerr << "Hubo un error al minar: " << e.what() << "\n";
     }
     
-    InfoCancion ultima_cancion;
-    
-    if(!canciones.empty()){
-
-	for(InfoCancion cancion : canciones){
-	    vista.agregar_cancion(cancion);
-	    ultima_cancion = cancion;
-	}
-    
-	vista.mostrar_info(ultima_cancion);
-    }
-
-    cancion_actual = ultima_cancion;
-    vista.mostrar_mensaje("Minado terminado");
-
-    QListWidget *lista = vista.get_lista_canciones();
-    int elementos = lista -> count();
-
-    if(elementos > 0){
-	QListWidgetItem *ultima = lista -> item(elementos -1);
-	lista -> setCurrentItem(ultima);
-	mostrar_cancion(ultima);
-    }
+    cargar_bd();
 }
 
 void Controlador::agregar_integrante(){
@@ -254,7 +233,58 @@ void Controlador::agregar_integrante(){
 }
 
 void Controlador::agregar_artista(){
+    std::string nombre = vista.get_nombre_form() -> text().toStdString();
+
+    if(nombre.empty()){
+	vista.mostrar_mensaje("Debes ponerle un nombre al nuevo artista.");
+	return;
+    }
     
+    int existe = BD.artista_existe(nombre);
+
+    if(existe != -1){
+	vista.mostrar_mensaje("El artista " + nombre + " ya existe.");
+	return;
+    }
+
+    int tipo = vista.get_tipo_performer_form() -> currentIndex();
+
+    BD.agregar_performer(tipo, nombre);
+
+    if(tipo == 0){
+	BD.agregar_person(nombre);
+	
+	std::string nombre_real = vista.get_nombre_real_form() -> text().toStdString();
+	std::string fecha_nacimiento = vista.get_nacimiento_form() -> text().toStdString();
+	std::string fecha_fallecimiento = vista.get_fallecimiento_form() -> text().toStdString();
+
+	if(!nombre_real.empty()){
+	    BD.modificar_persona("real_name", nombre_real, nombre);
+	}
+
+	if(!fecha_nacimiento.empty()){
+	    BD.modificar_persona("birth_date", fecha_nacimiento, nombre);
+	}
+
+	if(!fecha_fallecimiento.empty()){
+	    BD.modificar_persona("death_date", fecha_fallecimiento, nombre);
+	}
+    }else if(tipo == 1){
+	BD.agregar_group(nombre);
+	
+	std::string fecha_inicio = vista.get_fecha_inicio_form() -> text().toStdString();
+	std::string fecha_fin = vista.get_fecha_fin_form() -> text().toStdString();
+
+	if(!fecha_inicio.empty()){
+	    BD.modificar_grupo("start_date", fecha_inicio, nombre);
+	}
+
+	if(!fecha_fin.empty()){
+	    BD.modificar_grupo("end_date", fecha_fin, nombre);
+	}
+    }
+
+    vista.mostrar_mensaje(nombre + " se agregó exitosamente.");
 }
 
 void Controlador::cargar_bd(){
@@ -323,4 +353,10 @@ void Controlador::mostrar_cancion(QListWidgetItem *item){
     item -> setData(Qt::UserRole, QVariant::fromValue(cancion_actual));
 
     vista.mostrar_info(cancion_actual);
+}
+
+void Controlador::abrir_formulario_nuevo_artista(){
+    vista.formulario_agregar_artista();
+
+    connect(vista.get_enviar_formulario(), &QPushButton::clicked, this, &Controlador::agregar_artista);
 }
