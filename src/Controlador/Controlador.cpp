@@ -4,6 +4,9 @@
 #include <QLineEdit>
 #include <QComboBox>
 
+/**
+ * @brief Aquí se encontrará la implementación de los métodos descritos en Controlador.hpp
+ */
 Controlador::Controlador(Vista& _vista, BaseDatos& _BD, QObject *parent)
 	: QObject(parent), vista(_vista), BD(_BD){
 

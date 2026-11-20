@@ -3,6 +3,9 @@
 #include <stdexcept>
 #include <string>
 
+/**
+ * @brief La clase ErrorCompilador crea errores específicos localizados en el compilador.
+ */
 class ErrorCompilador : public std::runtime_error{
 public:
     explicit ErrorCompilador(const std::string& mensaje)

@@ -3,6 +3,9 @@
 #include <stdexcept>
 #include <string>
 
+/**
+ * @brief La clase ErrorBD crea errores específicos localizados en la base de datos.
+ */
 class ErrorBD : public std::runtime_error{
 public:
     explicit ErrorBD(const std::string& mensaje)

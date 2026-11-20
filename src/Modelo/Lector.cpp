@@ -10,10 +10,18 @@
 
 namespace fs = std::filesystem;
 
+/**
+ * @brief La clase Lector se encarga de analizar un archivo dado, obteniendo información
+ * del artista, de la canción y del álbum.
+ */
 class Lector{
 
 public:
 
+    /**
+     * @brief Método que obtiene la información de un archivo dado. 
+     * @param ruta_archivo Ruta donde se encuentra el archivo a analizar
+     */
     static InfoCancion obtener_info(const fs::path& ruta_archivo){
 	InfoCancion datos;
 	

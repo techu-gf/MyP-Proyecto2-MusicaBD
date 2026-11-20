@@ -2,6 +2,9 @@
 #include <QToolTip>
 #include "Vista.hpp"
 
+/**
+ * @brief Aquí se encontrará la implementación de los métodos descritos en Vista.hpp
+ */
 Vista::Vista(QWidget *parent) : QWidget(parent){
     QWidget *barra_superior = crear_barra_superior();
     QWidget *lista_canciones = crear_lista_canciones();

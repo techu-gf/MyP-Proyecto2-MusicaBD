@@ -3,6 +3,11 @@
 #include <sstream>
 #include "ErrorCompilador.hpp"
 
+/**
+ * @brief La clase Compilador se encarga de analizar una cadena de texto
+ * y, en caso de que esté escrita "correctamente", la traducirá a una
+ * consulta sql. 
+ */
 class Compilador{
 
 private:
@@ -13,6 +18,9 @@ private:
     inline static const std::string ANIO = "year";
     inline static const std::string GENERO = "genre";
 
+    /**
+     * @brief Estructura que guarda la info de cada token.
+     */
     struct Token{
 	std::string campo;
 	std::string tipo_contencion;
@@ -23,6 +31,13 @@ private:
 
     std::vector<Token> tokens;
 
+    /**
+     * @brief Método que separa cada filtro que se busca de acuerdo a un delimitador.
+     * Se buscó que funcione parecidamente al split de Java.
+     * @param cadena Cadena de texto que se va a separar.
+     * @param delimitador Caracter que se toma como separador de la cadena.
+     * @return std::vector<std::string> Vector con las subcadenas obtenidas. 
+     */
     std::vector<std::string> split(std::string& cadena, char delimitador){
 	std::vector<std::string> resultado;
 	std::stringstream ss(cadena);
@@ -50,6 +65,12 @@ private:
 	return resultado;
     }
 
+    /**
+     * @brief Método que determina si una cadena es un número entero positivo.
+     * @param cadena Cadena de texto que se va a analizar.
+     * @return bool Regresa true en cado de que sea un número entero positivo,
+     * regresa false en otro caso. 
+     */
     bool es_numero(std::string& cadena){
         if(cadena.empty()){
 	    return false;
@@ -64,6 +85,13 @@ private:
 	return true;
     }
 
+    /**
+     * @brief Método que obtiene la columna de la base de datos que representa
+     * una cadena.
+     * @param campoDeseado Cadena que se va a analizar.
+     * @return std::string Regresa la equivalencia en la base de datos. En caso
+     * de que no se encuentre equivalencia, regresa una cadena vacía. 
+     */
     std::string obtener_columna(std::string& campoDeseado){
 	if(campoDeseado == ARTISTA){
 	    return "performers.name";
@@ -80,6 +108,12 @@ private:
 	return "";
     }
 
+    /**
+     * @brief Método que dará formato a una cadena para que, en caso de tener ',
+     * esta no afecte a la consulta a la base de datos. 
+     * @param cadena Cadena que se va a formatear. 
+     * @return std::string Regresa la cadena ya formateada. 
+     */
     std::string encuentra_comilla(std::string& cadena){
 	std::string cadena_segura;
 
@@ -95,8 +129,12 @@ private:
     }
 
 public:
-    
-    std::vector<Token> lexer(std::string consulta){
+
+    /**
+     * @brief Método que separa la consulta original para obtener los tokens.
+     * @param consulta Cadena con la consulta hecha por el cliente.
+     */
+    void lexer(std::string consulta){
 	tokens.clear();
 
 	std::vector<std::string> busquedas = split(consulta, ' ');
@@ -145,10 +183,11 @@ public:
 
 	    tokens.push_back(token);
 	}
-
-	return tokens;
     }
 
+    /**
+     * @brief Método que analiza cada token, verificando que son válidos.
+     */
     void parser(){
 	if(tokens.empty()){
 	    throw ErrorCompilador("No se pudo procesar la consulta.");
@@ -193,6 +232,10 @@ public:
 	}
     }
 
+    /**
+     * @brief Método que construye la consulta SQL de acuerdo con los tokens existentes. 
+     * @return std::string Regresa una cadena con la consulta construida.
+     */
     std::string a_SQL(){
 	std::string consulta = "SELECT rolas.title, performers.name, albums.name, rolas.track, rolas.year, rolas.genre, rolas.path, performers.id_type, persons.real_name, persons.birth_date, persons.death_date, groups.start_date, groups.end_date "
 	    "FROM rolas "
