@@ -29,6 +29,10 @@ public:
     QPushButton* get_enviar_formulario() const{
 	return enviar_formulario;
     }
+
+    QLineEdit* get_consulta() const{
+	return consulta;
+    }
     
     void mostrar_mensaje(const std::string& mensaje);
     void agregar_cancion(const InfoCancion& info);
@@ -133,6 +137,7 @@ private:
 
     QPushButton* minar;
     QPushButton* agregar_artista;
+    QLineEdit* consulta;
     
     QListWidget* lista_canciones;
     QLabel *imagen_album;

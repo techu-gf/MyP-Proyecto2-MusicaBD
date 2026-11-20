@@ -9,13 +9,13 @@ Controlador::Controlador(Vista& _vista, BaseDatos& _BD, QObject *parent)
 
 	connect(vista.get_boton_minar(), &QPushButton::clicked, this, &Controlador::minar);
 	connect(vista.get_boton_agregar_artista(), &QPushButton::clicked, this, &Controlador::abrir_formulario_nuevo_artista);
+	connect(vista.get_consulta(), &QLineEdit::returnPressed, this, &Controlador::consultar);
 	
 	connect(vista.get_lista_canciones(), &QListWidget::itemClicked, this, &Controlador::mostrar_cancion);
 	connect(vista.get_campo_cancion(), &QLineEdit::editingFinished, this, &Controlador::modificar_cancion);
 	connect(vista.get_campo_track(), &QLineEdit::editingFinished, this, &Controlador::modificar_cancion);
 	connect(vista.get_campo_anio(), &QLineEdit::editingFinished, this, &Controlador::modificar_cancion);
 	connect(vista.get_campo_genero(), &QLineEdit::editingFinished, this, &Controlador::modificar_cancion);
-
 	
 	connect(vista.get_campo_artista(), &QLineEdit::editingFinished, this, &Controlador::modificar_artista);
 	connect(vista.get_tipo_performer(), qOverload<int>(&QComboBox::currentIndexChanged), this, &Controlador::modificar_artista);
@@ -35,7 +35,49 @@ Controlador::Controlador(Vista& _vista, BaseDatos& _BD, QObject *parent)
 Controlador::~Controlador(){}
 
 void Controlador::consultar(){
+    std::string busqueda = vista.get_consulta() -> text().toStdString();
+
+    if(busqueda.empty()){
+	cargar_bd();
+	return;
+    }
+
+    try{
+	std::vector<InfoCancion> canciones = BD.consultar(busqueda);
+
+	QListWidget* lista = vista.get_lista_canciones();
+	lista -> clear();
+
+	for(InfoCancion &cancion : canciones){
+	    const char* home = std::getenv("HOME");
+	    std::string album_nombre = cancion.name_album;
+
+	    for(char &c : album_nombre){
+		if(c == ' ' || c == '/' || c == '\\'){
+		    c = '_';
+		}
+	    }
+
+	    fs::path dir_portada = std::string(home) + "/.local/share/musiquita/albums/" + album_nombre + ".jpg";
+
+	    if(fs::exists(dir_portada)){
+		cancion.path_portada = dir_portada.string();
+	    }else{
+		cancion.path_portada = "src/sources/album_predeterminado.jpg";
+	    }
+	    vista.agregar_cancion(cancion);
+	}
 	
+	int elementos = lista -> count();
+
+	if(elementos > 0){
+	    QListWidgetItem *primera = lista -> item(0);
+	    lista -> setCurrentItem(primera);
+	    mostrar_cancion(primera);
+	}
+    }catch(const ErrorCompilador& e){
+	vista.mostrar_mensaje(e.what());
+    }
 }
 
 void Controlador::modificar_info(){

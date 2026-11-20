@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include "InfoCancion.hpp"
 #include "ErrorBD.hpp"
+#include "Compilador.cpp"
 
 class BaseDatos{
 
@@ -247,8 +248,53 @@ public:
 	return es_vacia;
     }
 
-    void consultar(){
+    std::vector<InfoCancion> consultar(std::string consulta){
+	Compilador compilador;
+	compilador.lexer(consulta);
+
+	try{
+	    compilador.parser();
+	}catch(const ErrorCompilador& e){
+	    throw;
+	}
+
+	std::string consulta_sql = compilador.a_SQL();
+	std::vector<InfoCancion> canciones;
+	sqlite3_stmt* stmt = nullptr;
 	
+	int preparacion = sqlite3_prepare_v2(BD, consulta_sql.c_str(), -1, &stmt, NULL);
+
+	if(preparacion == SQLITE_OK){
+	    while(sqlite3_step(stmt) == SQLITE_ROW){
+		InfoCancion cancion;
+		cancion.title_rola = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+		cancion.name_performer = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+		cancion.name_album = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+		cancion.track_rola = sqlite3_column_int(stmt, 3);
+		cancion.year = sqlite3_column_int(stmt, 4);
+		cancion.genre_rola = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5));
+		cancion.path_rola = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6));
+		cancion.type_performer = sqlite3_column_int(stmt, 7);
+		
+		cancion.integrantes = obtener_integrantes(cancion.name_performer);
+
+	        auto nombre_real = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 8));
+		cancion.real_name = nombre_real ? nombre_real : "";
+		auto nacimiento = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 9));
+		cancion.birth_date = nacimiento ? nacimiento : "";
+		auto fallecimiento = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 10));
+		cancion.death_date = fallecimiento ? fallecimiento : "";
+		auto inicio = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 11));
+		cancion.start_date = inicio ? inicio : "";
+		auto finalizacion = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 12));
+		cancion.end_date = finalizacion ? finalizacion : "";
+
+		canciones.push_back(cancion);
+	    }
+	}
+
+	sqlite3_finalize(stmt);
+	return canciones;
     }
 
     std::vector<InfoCancion> obtener_info_canciones(){

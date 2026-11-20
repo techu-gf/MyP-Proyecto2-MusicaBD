@@ -31,7 +31,7 @@ QWidget* Vista::crear_barra_superior(){
 
     minar = new QPushButton(box);
     agregar_artista = new QPushButton(box);
-    QLineEdit* consulta = new QLineEdit(box);
+    consulta = new QLineEdit(box);
     
     minar -> setIcon(QIcon("src/sources/iconos/minar.png"));
     minar -> setIconSize(QSize(33, 33));
@@ -294,6 +294,9 @@ QWidget* Vista::crear_info_grupo(){
 
     QLabel *integrantesLetrero = new QLabel("Integrantes: ", box);
     integrantesLetrero -> setObjectName("info-principal");
+    
+    QLabel *agregarLetrero = new QLabel("Agregar integrante: ", box);
+    agregarLetrero -> setObjectName("info-principal");
 
     QLabel *inicioLetrero = new QLabel("Debut: ", box);
     inicioLetrero -> setObjectName("info-principal");
@@ -306,6 +309,7 @@ QWidget* Vista::crear_info_grupo(){
     info -> setSpacing(8);
     info -> addWidget(integrantesLetrero);
     info -> addWidget(integrantes);
+    info -> addWidget(agregarLetrero);
     info -> addWidget(agregar_integrante);
     info -> addWidget(inicioLetrero);
     info -> addWidget(start_date);
