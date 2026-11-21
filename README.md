@@ -46,11 +46,11 @@ Las búsquedas tendrán 5 elementos: campo, contenedor, negación, búsqueda y c
 | contenedor | Debe escribirse después del campo. Tiene dos opciones: = (para búsquedas con el texto exacto) y ~ (para búsquedas que contengan el texto) |
 | negación | Este elemento es opcional. Se denota con ! e indica que no quiere que la búsqueda contenga el texto indicado. |
 | búsqueda | Cadena de texto que desea buscar. Debe escribirse entre comillas (""). |
-| conector | Indica si el siguiente elemento debe estar en los resultados de forma obligatoria (&) o si es opcional (|). |
+| conector | Indica si el siguiente elemento debe estar en los resultados de forma obligatoria (&) o si es opcional (\|). |
 
 Tome en cuenta la siguiente estructura para realizar sus consultas:
 
-<CAMPO><TIPO_CONTENCION><NEGACION>"<BÚSQUEDA>" <CONECTOR> ... <CAMPO><TIPO_CONTENCION><NEGACION>"<BÚSQUEDA>"
+&lt;CAMPO&gt;&lt;TIPO_CONTENCION&gt;&lt;NEGACION&gt;"&lt;BÚSQUEDA&gt;" &lt;CONECTOR&gt; ... &lt;CAMPO&gt;&lt;TIPO_CONTENCION&gt;&lt;NEGACION&gt;"&lt;BÚSQUEDA&gt;"
 
 A continuación se le muestran unos ejemplos para que lo tenga más claro:
 
